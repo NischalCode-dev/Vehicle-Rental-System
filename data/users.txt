@@ -1,0 +1,2 @@
+1|Nischal_Kafle|nick@kafle12@gmail.com|9863526212|nick23|admin23|customer
+2|Test User|test@example.com|1234567890|testuser|pass123|customer
