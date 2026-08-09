@@ -486,6 +486,7 @@ void RentalSystem::createBooking() {
         vehicleIt->setStatus("BOOKED");
         saveVehicles();
         saveBookings();
+        addNotification("Booking created for vehicle #" + std::to_string(vehicleId) + ".", "BOOKING");
         if (discount > 0.0) {
             std::cout << "[SUCCESS] Booking created successfully with coupon discount of Rs. " << utils::formatMoney(discount) << "\n";
         } else {
@@ -534,6 +535,7 @@ void RentalSystem::cancelBooking() {
     }
 
     saveBookings();
+    addNotification("Booking #" + std::to_string(bookingId) + " was cancelled.", "BOOKING");
     std::cout << "[SUCCESS] Booking cancelled.\n";
 }
 
@@ -645,28 +647,303 @@ void RentalSystem::processReturn() {
         }
         saveUsers();
         saveBookings();
+        addNotification("Vehicle returned for booking #" + std::to_string(bookingId) + ".", "BOOKING");
         std::cout << "[SUCCESS] Return processed.\n";
     } catch (const std::exception& ex) {
         std::cout << "[ERROR] " << ex.what() << "\n";
     }
 }
 
+// void RentalSystem::makePayment() {
+//     int bookingId = utils::getInt("Booking ID: ");
+//     auto bookingIt = std::find_if(bookings.begin(), bookings.end(), [&](const Booking& booking) {
+//         return booking.getId() == bookingId;
+//     });
+//     if (bookingIt == bookings.end()) {
+//         std::cout << "[ERROR] Booking not found.\n";
+//         return;
+//     }
+
+//     std::string method = utils::getNonEmptyString("Payment method: ");
+//     double amount = utils::getDouble("Amount: ");
+//     payments.emplace_back(nextPaymentId++, bookingIt->getId(), bookingIt->getCustomerId(), amount, method, currentDateString(), "TXN" + std::to_string(nextPaymentId), "PAID");
+//     bookingIt->setStatus("PAID");
+//     savePayments();
+//     saveBookings();
+
+//     auto vehicleIt = std::find_if(vehicles.begin(), vehicles.end(), [&](const Vehicle& vehicle) {
+//         return vehicle.getId() == bookingIt->getVehicleId();
+//     });
+//     auto customerIt = std::find_if(users.begin(), users.end(), [&](const User& user) {
+//         return user.getId() == bookingIt->getCustomerId();
+//     });
+//     if (vehicleIt != vehicles.end() && customerIt != users.end()) {
+//         const Payment& paymentRecord = payments.back();
+//         Invoice invoice(*bookingIt, *vehicleIt, *customerIt, paymentRecord);
+//         std::cout << "[SUCCESS] Payment recorded.\n";
+//         std::cout << "\n";
+//         invoice.display();
+//         addNotification("Payment received for booking #" + std::to_string(bookingId) + ".", "PAYMENT");
+//     } else {
+//         std::cout << "[SUCCESS] Payment recorded.\n";
+//         addNotification("Payment received for booking #" + std::to_string(bookingId) + ".", "PAYMENT");
+//     }
+// }
 void RentalSystem::makePayment() {
-    int bookingId = utils::getInt("Booking ID: ");
-    auto bookingIt = std::find_if(bookings.begin(), bookings.end(), [&](const Booking& booking) {
-        return booking.getId() == bookingId;
-    });
-    if (bookingIt == bookings.end()) {
-        std::cout << "[ERROR] Booking not found.\n";
+    if (currentUser == nullptr) {
+        utils::printError("Please login as a customer first.");
         return;
     }
 
-    std::string method = utils::getNonEmptyString("Payment method: ");
-    double amount = utils::getDouble("Amount: ");
-    payments.emplace_back(nextPaymentId++, bookingIt->getId(), bookingIt->getCustomerId(), amount, method, currentDateString(), "TXN" + std::to_string(nextPaymentId), "PAID");
+    int bookingId = utils::getInt("Booking ID: ");
+
+    auto bookingIt = std::find_if(
+        bookings.begin(),
+        bookings.end(),
+        [&](const Booking& booking) {
+            return booking.getId() == bookingId &&
+                   booking.getCustomerId() == currentUser->getId();
+        }
+    );
+
+    if (bookingIt == bookings.end()) {
+        utils::printError("Booking not found or does not belong to you.");
+        return;
+    }
+
+    if (bookingIt->getStatus() != "COMPLETED") {
+        utils::printError(
+            "Payment can only be made after the vehicle has been returned."
+        );
+        return;
+    }
+
+    // Check if payment already exists
+    auto existingPayment = std::find_if(
+        payments.begin(),
+        payments.end(),
+        [&](const Payment& payment) {
+            return payment.getBookingId() == bookingId &&
+                   payment.getStatus() == "PAID";
+        }
+    );
+
+    if (existingPayment != payments.end()) {
+        utils::printWarning("This booking has already been paid.");
+        return;
+    }
+
+    double totalAmount =
+        bookingIt->getRentalPrice() +
+        bookingIt->getLateFee() +
+        bookingIt->getFuelCharge() +
+        bookingIt->getDamageCharge();
+
+    utils::printHeader("PAYMENT");
+
+    std::cout << "Booking ID    : BK"
+              << bookingId << "\n";
+
+    std::cout << "Rental Cost   : Rs. "
+              << utils::formatMoney(
+                     bookingIt->getRentalPrice()
+                 ) << "\n";
+
+    std::cout << "Late Fee      : Rs. "
+              << utils::formatMoney(
+                     bookingIt->getLateFee()
+                 ) << "\n";
+
+    std::cout << "Fuel Charge   : Rs. "
+              << utils::formatMoney(
+                     bookingIt->getFuelCharge()
+                 ) << "\n";
+
+    std::cout << "Damage Charge : Rs. "
+              << utils::formatMoney(
+                     bookingIt->getDamageCharge()
+                 ) << "\n";
+
+    std::cout << "----------------------------------------\n";
+
+    std::cout << "TOTAL AMOUNT  : Rs. "
+              << utils::formatMoney(totalAmount)
+              << "\n";
+
+    std::string method =
+        utils::getNonEmptyString(
+            "Payment method (Cash/eSewa/Khalti/Card): "
+        );
+
+    double amount =
+        utils::getDouble("Enter payment amount: ");
+
+    if (amount < totalAmount) {
+        utils::printError(
+            "Payment amount is less than the total amount."
+        );
+        return;
+    }
+
+    // Generate payment ID
+    int paymentId = nextPaymentId++;
+
+    // Generate transaction ID
+    std::string transactionId =
+        "TXN" + std::to_string(paymentId);
+
+    Payment payment(
+        paymentId,
+        bookingIt->getId(),
+        bookingIt->getCustomerId(),
+        totalAmount,
+        method,
+        currentDateString(),
+        transactionId,
+        "PAID"
+    );
+
+    // Add payment to memory
+    payments.push_back(payment);
+
+    // Save payment permanently
     savePayments();
-    std::cout << "[SUCCESS] Payment recorded.\n";
+
+    utils::printSuccess(
+        "Payment completed successfully."
+    );
+
+    std::cout << "Transaction ID: "
+              << transactionId << "\n";
+
+    // Generate invoice
+    generateInvoice(*bookingIt, payment);
 }
+void RentalSystem::generateInvoice(
+    const Booking& booking,
+    const Payment& payment
+) {
+    auto vehicleIt = std::find_if(
+        vehicles.begin(),
+        vehicles.end(),
+        [&](const Vehicle& vehicle) {
+            return vehicle.getId() == booking.getVehicleId();
+        }
+    );
+
+    if (vehicleIt == vehicles.end()) {
+        utils::printError("Vehicle information not found.");
+        return;
+    }
+
+    auto customerIt = std::find_if(
+        users.begin(),
+        users.end(),
+        [&](const User& user) {
+            return user.getId() == booking.getCustomerId();
+        }
+    );
+
+    if (customerIt == users.end()) {
+        utils::printError("Customer information not found.");
+        return;
+    }
+
+    Invoice invoice(
+        booking,
+        *vehicleIt,
+        *customerIt,
+        payment
+    );
+
+    utils::printHeader("INVOICE");
+
+    invoice.display();
+
+    utils::printSuccess(
+        "Invoice generated successfully."
+    );
+}
+void RentalSystem::viewInvoice() {
+    if (currentUser == nullptr) {
+        utils::printError("Please login as a customer first.");
+        return;
+    }
+
+    std::vector<const Payment*> customerPayments;
+
+    for (const auto& payment : payments) {
+        if (payment.getCustomerId() == currentUser->getId() &&
+            payment.getStatus() == "PAID") {
+
+            customerPayments.push_back(&payment);
+        }
+    }
+
+    if (customerPayments.empty()) {
+        utils::printInfo(
+            "You do not have any paid invoices yet."
+        );
+        return;
+    }
+
+    utils::printHeader("MY INVOICES");
+
+    for (size_t i = 0; i < customerPayments.size(); ++i) {
+
+        const Payment* payment =
+            customerPayments[i];
+
+        std::cout
+            << "[" << i + 1 << "] "
+            << "Invoice: INV-BK"
+            << payment->getBookingId()
+            << " | Transaction: "
+            << payment->getTransactionId()
+            << " | Rs. "
+            << utils::formatMoney(payment->getAmount())
+            << "\n";
+    }
+
+    int choice =
+        utils::getInt("Select invoice (0 to cancel): ");
+
+    if (choice == 0) {
+        return;
+    }
+
+    if (choice < 1 ||
+        choice > static_cast<int>(customerPayments.size())) {
+
+        utils::printError("Invalid invoice selection.");
+        return;
+    }
+
+    const Payment* selectedPayment =
+        customerPayments[choice - 1];
+
+    auto bookingIt = std::find_if(
+        bookings.begin(),
+        bookings.end(),
+        [&](const Booking& booking) {
+            return booking.getId() ==
+                       selectedPayment->getBookingId() &&
+                   booking.getCustomerId() ==
+                       currentUser->getId();
+        }
+    );
+
+    if (bookingIt == bookings.end()) {
+        utils::printError("Associated booking not found.");
+        return;
+    }
+
+    generateInvoice(
+        *bookingIt,
+        *selectedPayment
+    );
+}
+
 
 void RentalSystem::addMaintenance() {
     int vehicleId = utils::getInt("Vehicle ID: ");
@@ -888,7 +1165,7 @@ void RentalSystem::showRecommendations() {
         if (vehicle.getAverageRating() >= 4.0) score += 2;
         scored.push_back({vehicle.getId(), score});
     }
-    std::sort(scored.begin(), scored.end(), [](const auto& left, const auto& right) {
+    std::sort(scored.begin(), scored.end(), [](const std::pair<int, int>& left, const std::pair<int, int>& right) {
         return left.second > right.second;
     });
     int count = 0;
@@ -1012,6 +1289,65 @@ void RentalSystem::showCouponMenu() {
     }
 }
 
+void RentalSystem::manageFavorites() {
+    if (currentUser == nullptr) {
+        utils::printError("Please login first.");
+        return;
+    }
+
+    while (true) {
+        utils::printHeader("FAVORITE VEHICLES");
+        std::cout << "[1] Add Favorite\n";
+        std::cout << "[2] Remove Favorite\n";
+        std::cout << "[3] View Favorites\n";
+        std::cout << "[4] Back\n";
+        int choice = utils::getInt("Enter choice: ");
+        switch (choice) {
+            case 1:
+                addFavorite();
+                break;
+            case 2:
+                removeFavorite();
+                break;
+            case 3:
+                viewFavorites();
+                break;
+            case 4:
+                return;
+            default:
+                utils::printError("Invalid choice.");
+        }
+        if (choice != 4) {
+            utils::pauseScreen();
+        }
+    }
+}
+
+void RentalSystem::manageNotifications() {
+    while (true) {
+        utils::printHeader("NOTIFICATIONS");
+        std::cout << "[1] View Notifications\n";
+        std::cout << "[2] Mark Notification as Read\n";
+        std::cout << "[3] Back\n";
+        int choice = utils::getInt("Enter choice: ");
+        switch (choice) {
+            case 1:
+                viewNotifications();
+                break;
+            case 2:
+                markNotificationRead();
+                break;
+            case 3:
+                return;
+            default:
+                utils::printError("Invalid choice.");
+        }
+        if (choice != 3) {
+            utils::pauseScreen();
+        }
+    }
+}
+
 void RentalSystem::showAdminDashboard() {
     while (true) {
         utils::clearScreen();
@@ -1046,7 +1382,7 @@ void RentalSystem::showAdminDashboard() {
                 manageCoupons();
                 break;
             case 7:
-                viewNotifications();
+                manageNotifications();
                 break;
             case 8:
                 utils::printSuccess("Logged out.");
@@ -1060,57 +1396,187 @@ void RentalSystem::showAdminDashboard() {
     }
 }
 
+// void RentalSystem::showCustomerDashboard() {
+//     while (true) {
+//         utils::clearScreen();
+//         utils::printHeader("CUSTOMER DASHBOARD");
+//         utils::printInfo("Welcome " + currentUser->getName() + ".");
+//         std::cout << "[1] Browse Vehicles\n";
+//         std::cout << "[2] Create Booking\n";
+//         std::cout << "[3] My Bookings\n";
+//         std::cout << "[4] Cancel Booking\n";
+//         std::cout << "[5] Add Review\n";
+//         std::cout << "[6] Add Favorite\n";
+//         std::cout << "[7] Remove Favorite\n";
+//         std::cout << "[8] View Favorites\n";
+//         std::cout << "[9] Recommended Vehicles\n";
+//         std::cout << "[10] Coupons\n";
+//         std::cout << "[11] Notifications\n";
+//         std::cout << "[12] Logout\n";
+//         int choice = utils::getInt("Enter choice: ");
+//         switch (choice) {
+//             case 1:
+//                 browseVehicles();
+//                 break;
+//             case 2:
+//                 createBooking();
+//                 break;
+//             case 3:
+//                 viewBookings();
+//                 break;
+//             case 4:
+//                 cancelBooking();
+//                 break;
+//             case 5:
+//                 addReview();
+//                 break;
+//             case 6:
+//                 addFavorite();
+//                 break;
+//             case 7:
+//                 removeFavorite();
+//                 break;
+//             case 8:
+//                 viewFavorites();
+//                 break;
+//             case 9:
+//                 showRecommendations();
+//                 break;
+//             case 10:
+//                 showCouponMenu();
+//                 break;
+//             case 11: {
+//                 while (true) {
+//                     utils::printHeader("NOTIFICATION CENTER");
+//                     std::cout << "[1] View Notifications\n";
+//                     std::cout << "[2] Mark Notification as Read\n";
+//                     std::cout << "[3] Back\n";
+//                     int notificationChoice = utils::getInt("Enter choice: ");
+//                     if (notificationChoice == 1) {
+//                         viewNotifications();
+//                     } else if (notificationChoice == 2) {
+//                         markNotificationRead();
+//                     } else if (notificationChoice == 3) {
+//                         break;
+//                     } else {
+//                         utils::printError("Invalid choice.");
+//                     }
+//                     utils::pauseScreen();
+//                 }
+//                 break;
+//             }
+//             case 12:
+//                 utils::printSuccess("Logged out.");
+//                 return;
+//             default:
+//                 utils::printError("Invalid choice.");
+//         }
+//         if (choice != 12) {
+//             utils::pauseScreen();
+//         }
+//     }
+// }
 void RentalSystem::showCustomerDashboard() {
     while (true) {
         utils::clearScreen();
+
         utils::printHeader("CUSTOMER DASHBOARD");
-        utils::printInfo("Welcome " + currentUser->getName() + ".");
-        std::cout << "[1] Browse Vehicles\n";
-        std::cout << "[2] Create Booking\n";
-        std::cout << "[3] My Bookings\n";
-        std::cout << "[4] Cancel Booking\n";
-        std::cout << "[5] Add Review\n";
-        std::cout << "[6] Favorite Vehicles\n";
-        std::cout << "[7] Recommended Vehicles\n";
-        std::cout << "[8] Coupons\n";
-        std::cout << "[9] Notifications\n";
-        std::cout << "[10] Logout\n";
-        int choice = utils::getInt("Enter choice: ");
+
+        utils::printInfo(
+            "Welcome " + currentUser->getName() + "."
+        );
+
+        std::cout << "\n";
+
+        std::cout << "[1]  Browse Vehicles\n";
+        std::cout << "[2]  Create Booking\n";
+        std::cout << "[3]  My Bookings\n";
+        std::cout << "[4]  Cancel Booking\n";
+        std::cout << "[5]  Process Pickup\n";
+        std::cout << "[6]  Return Vehicle\n";
+        std::cout << "[7]  Make Payment\n";
+        std::cout << "[8]  View Invoice\n";
+        std::cout << "[9]  Add Review\n";
+        std::cout << "[10] Favorite Vehicles\n";
+        std::cout << "[11] Recommended Vehicles\n";
+        std::cout << "[12] Coupons\n";
+        std::cout << "[13] Notifications\n";
+        std::cout << "[14] Logout\n";
+
+        std::cout << "\n";
+
+        int choice =
+            utils::getInt("Enter choice: ");
+
         switch (choice) {
+
             case 1:
                 browseVehicles();
                 break;
+
             case 2:
                 createBooking();
                 break;
+
             case 3:
                 viewBookings();
                 break;
+
             case 4:
                 cancelBooking();
                 break;
+
             case 5:
+                processPickup();
+                break;
+
+            case 6:
+                processReturn();
+                break;
+
+            case 7:
+                makePayment();
+                break;
+
+            case 8:
+                viewInvoice();
+                break;
+
+            case 9:
                 addReview();
                 break;
-            case 6:
+
+            case 10:
+                addFavorite();
+                break;
+
+            case 11:
                 viewFavorites();
                 break;
-            case 7:
+
+            case 12:
                 showRecommendations();
                 break;
-            case 8:
+
+            case 13:
                 showCouponMenu();
                 break;
-            case 9:
+
+            case 14:
                 viewNotifications();
                 break;
-            case 10:
+
+            case 15:
                 utils::printSuccess("Logged out.");
                 return;
+
             default:
-                utils::printError("Invalid choice.");
+                utils::printError(
+                    "Invalid choice."
+                );
         }
-        if (choice != 10) {
+
+        if (choice != 15) {
             utils::pauseScreen();
         }
     }

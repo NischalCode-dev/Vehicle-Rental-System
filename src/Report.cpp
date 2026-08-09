@@ -220,7 +220,7 @@ void Report::showPopularVehicles() const {
     for (const auto& entry : bookingCounts) {
         ranked.push_back({entry.first, entry.second});
     }
-    std::sort(ranked.begin(), ranked.end(), [](const auto& left, const auto& right) {
+    std::sort(ranked.begin(), ranked.end(), [](const std::pair<int, int>& left, const std::pair<int, int>& right) {
         return left.second > right.second;
     });
 

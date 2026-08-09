@@ -52,6 +52,8 @@ private:
     void processPickup();
     void processReturn();
     void makePayment();
+    void generateInvoice(const Booking& booking, const Payment& payment);
+    void viewInvoice();
     void addMaintenance();
     void viewMaintenance();
     void addReview();
@@ -74,6 +76,8 @@ private:
     void addFavorite();
     void removeFavorite();
     void viewFavorites();
+    void manageFavorites();
+    void manageNotifications();
     void showRecommendations();
     bool isFavorite(int vehicleId) const;
     bool isUsernameTaken(const std::string& username) const;
