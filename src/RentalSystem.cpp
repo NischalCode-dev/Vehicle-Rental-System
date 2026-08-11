@@ -342,7 +342,61 @@ void RentalSystem::loadBookings() {
         }
     }
 }
+bool RentalSystem::isVehicleAvailable(
+    int vehicleId,
+    const Date& pickup,
+    const Date& returnDate
+) const {
 
+    // Invalid date range
+    if (!pickup.isValid() ||
+        !returnDate.isValid() ||
+        !(pickup < returnDate)) {
+
+        return false;
+    }
+
+    // Check every existing booking
+    for (const auto& booking : bookings) {
+
+        // Different vehicle
+        if (booking.getVehicleId() != vehicleId) {
+            continue;
+        }
+
+        // Cancelled bookings don't block the vehicle
+        if (booking.getStatus() == "CANCELLED") {
+            continue;
+        }
+
+        // Completed bookings don't block future rentals
+        if (booking.getStatus() == "COMPLETED") {
+            continue;
+        }
+
+        Date existingPickup =
+            booking.getPickupDate();
+
+        Date existingReturn =
+            booking.getReturnDate();
+
+        /*
+         * Two rental periods overlap when:
+         *
+         * New pickup < Existing return
+         * AND
+         * New return > Existing pickup
+         */
+
+        if (pickup < existingReturn &&
+            returnDate > existingPickup) {
+
+            return false;
+        }
+    }
+
+    return true;
+}
 void RentalSystem::saveBookings() {
     std::vector<std::string> lines;
     for (const auto& booking : bookings) {
@@ -350,6 +404,7 @@ void RentalSystem::saveBookings() {
     }
     FileManager::writeLines(kBookingsPath, lines);
 }
+
 
 void RentalSystem::loadPayments() {
     payments.clear();
@@ -1490,15 +1545,15 @@ void RentalSystem::showCustomerDashboard() {
 
         std::cout << "[1]  Browse Vehicles\n";
         std::cout << "[2]  Create Booking\n";
-        std::cout << "[3]  My Bookings\n";
-        std::cout << "[4]  Cancel Booking\n";
-        std::cout << "[5]  Process Pickup\n";
-        std::cout << "[6]  Return Vehicle\n";
-        std::cout << "[7]  Make Payment\n";
-        std::cout << "[8]  View Invoice\n";
-        std::cout << "[9]  Add Review\n";
-        std::cout << "[10] Favorite Vehicles\n";
-        std::cout << "[11] Recommended Vehicles\n";
+        std::cout << "[3]  Smart Vehicle Availability\n";
+        std::cout << "[4]  My Bookings\n";
+        std::cout << "[5]  Cancel Booking\n";
+        std::cout << "[6]  Process Pickup\n";
+        std::cout << "[7]  Return Vehicle\n";
+        std::cout << "[8]  Make Payment\n";
+        std::cout << "[9]  View Invoice\n";
+        std::cout << "[10] Add Favorite Vehicles\n";
+        std::cout << "[11] View Favorite Vehicles\n";
         std::cout << "[12] Coupons\n";
         std::cout << "[13] Notifications\n";
         std::cout << "[14] Logout\n";
@@ -1519,31 +1574,31 @@ void RentalSystem::showCustomerDashboard() {
                 break;
 
             case 3:
+            smartVehicleAvailability();
+                 break;
+
+            case 4:
                 viewBookings();
                 break;
 
-            case 4:
+            case 5:
                 cancelBooking();
                 break;
 
-            case 5:
+            case 6:
                 processPickup();
                 break;
 
-            case 6:
+            case 7:
                 processReturn();
                 break;
 
-            case 7:
+            case 8:
                 makePayment();
                 break;
 
-            case 8:
-                viewInvoice();
-                break;
-
             case 9:
-                addReview();
+                viewInvoice();
                 break;
 
             case 10:
@@ -1555,19 +1610,17 @@ void RentalSystem::showCustomerDashboard() {
                 break;
 
             case 12:
-                showRecommendations();
-                break;
-
-            case 13:
                 showCouponMenu();
                 break;
 
-            case 14:
+            case 13:
                 viewNotifications();
                 break;
-
-            case 15:
-                utils::printSuccess("Logged out.");
+            
+            case 14:
+                utils::printSuccess(
+                    "Logged out."
+                );
                 return;
 
             default:
@@ -1576,7 +1629,7 @@ void RentalSystem::showCustomerDashboard() {
                 );
         }
 
-        if (choice != 15) {
+        if (choice != 14) {
             utils::pauseScreen();
         }
     }
@@ -1605,17 +1658,226 @@ bool RentalSystem::authenticate(const std::string& username, const std::string& 
     return false;
 }
 
-bool RentalSystem::isVehicleAvailable(int vehicleId, const Date& pickup, const Date& returnDate) const {
-    for (const auto& booking : bookings) {
-        if (booking.getVehicleId() != vehicleId) {
-            continue;
-        }
-        if (booking.getStatus() == "CANCELLED") {
-            continue;
-        }
-        if (pickup < booking.getReturnDate() && returnDate > booking.getPickupDate()) {
-            return false;
-        }
+void RentalSystem::smartVehicleAvailability() {
+
+    utils::printHeader(
+        "SMART VEHICLE AVAILABILITY"
+    );
+
+    std::string pickupInput =
+        utils::getNonEmptyString(
+            "Pickup Date (DD-MM-YYYY): "
+        );
+
+    std::string returnInput =
+        utils::getNonEmptyString(
+            "Return Date (DD-MM-YYYY): "
+        );
+
+    Date pickupDate;
+    Date returnDate;
+
+    try {
+
+        pickupDate = Date::parse(pickupInput);
+        returnDate = Date::parse(returnInput);
+
     }
-    return true;
+    catch (const std::exception& e) {
+
+        utils::printError(
+            "Invalid date. Please use DD-MM-YYYY."
+        );
+
+        return;
+    }
+
+    // Return date must be after pickup date
+    if (!(pickupDate < returnDate)) {
+
+        utils::printError(
+            "Return date must be after pickup date."
+        );
+
+        return;
+    }
+
+    std::string vehicleType =
+        utils::getNonEmptyString(
+            "Vehicle Type (or ALL): "
+        );
+
+    bool found = false;
+
+    std::cout << "\n";
+    std::cout
+        << "============================================================\n";
+
+    std::cout
+        << "              AVAILABLE VEHICLES\n";
+
+    std::cout
+        << "============================================================\n";
+
+    for (const auto& vehicle : vehicles) {
+
+        // Vehicle must be available
+        if (vehicle.getStatus() != "AVAILABLE") {
+            continue;
+        }
+
+        // Vehicle type filter
+        if (vehicleType != "ALL" &&
+            vehicle.getType() != vehicleType) {
+
+            continue;
+        }
+
+        // Check date availability
+        if (!isVehicleAvailable(
+                vehicle.getId(),
+                pickupDate,
+                returnDate)) {
+
+            continue;
+        }
+
+        found = true;
+
+        std::cout
+            << "\nVehicle ID  : "
+            << vehicle.getId();
+
+        std::cout
+            << "\nVehicle     : "
+            << vehicle.getBrand()
+            << " "
+            << vehicle.getModel();
+
+        std::cout
+            << "\nType        : "
+            << vehicle.getType();
+
+        std::cout
+            << "\nPrice/Day   : Rs. "
+            << utils::formatMoney(
+                   vehicle.getPricePerDay()
+               );
+
+        std::cout
+            << "\nStatus      : AVAILABLE";
+
+        std::cout
+            << "\n----------------------------------------\n";
+    }
+
+    if (found) {
+
+        utils::printSuccess(
+            "Vehicles are available for your selected dates."
+        );
+
+    }
+    else {
+
+        utils::printWarning(
+            "No vehicles are available for these dates."
+        );
+
+        showAlternativeVehicles(
+            pickupInput,
+            returnInput,
+            vehicleType
+        );
+    }
+}
+
+void RentalSystem::showAlternativeVehicles(
+    const std::string& pickupDate,
+    const std::string& returnDate,
+    const std::string& vehicleType
+) {
+
+    Date pickup;
+    Date returnDateObj;
+
+    try {
+
+        pickup = Date::parse(pickupDate);
+        returnDateObj = Date::parse(returnDate);
+
+    }
+    catch (...) {
+
+        return;
+    }
+
+    utils::printHeader(
+        "ALTERNATIVE VEHICLES"
+    );
+
+    bool found = false;
+
+    for (const auto& vehicle : vehicles) {
+
+        if (vehicle.getStatus() != "AVAILABLE") {
+            continue;
+        }
+
+        if (vehicleType != "ALL" &&
+            vehicle.getType() != vehicleType) {
+
+            continue;
+        }
+
+        if (!isVehicleAvailable(
+                vehicle.getId(),
+                pickup,
+                returnDateObj)) {
+
+            continue;
+        }
+
+        found = true;
+
+        std::cout
+            << "\nVehicle ID  : "
+            << vehicle.getId();
+
+        std::cout
+            << "\nVehicle     : "
+            << vehicle.getBrand()
+            << " "
+            << vehicle.getModel();
+
+        std::cout
+            << "\nType        : "
+            << vehicle.getType();
+
+        std::cout
+            << "\nPrice/Day   : Rs. "
+            << utils::formatMoney(
+                   vehicle.getPricePerDay()
+               );
+
+        std::cout
+            << "\nStatus      : AVAILABLE";
+
+        std::cout
+            << "\n----------------------------------------\n";
+    }
+
+    if (!found) {
+
+        utils::printInfo(
+            "No alternative vehicles are available."
+        );
+
+    }
+    else {
+
+        utils::printSuccess(
+            "Alternative vehicles are available."
+        );
+    }
 }

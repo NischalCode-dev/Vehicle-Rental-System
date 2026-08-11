@@ -4,3 +4,8 @@
 4|Vehicle returned for booking #2.|BOOKING|1
 5|Booking created for vehicle #2.|BOOKING|0
 6|Vehicle returned for booking #1.|BOOKING|0
+7|Booking created for vehicle #1.|BOOKING|0
+8|Booking created for vehicle #1.|BOOKING|0
+9|Vehicle returned for booking #3.|BOOKING|0
+10|Booking created for vehicle #2.|BOOKING|0
+11|Booking #2 was cancelled.|BOOKING|0

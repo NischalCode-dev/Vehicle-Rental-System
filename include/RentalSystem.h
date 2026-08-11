@@ -48,7 +48,22 @@ private:
     void displayAbout();
     void createBooking();
     void viewBookings();
+    
     void cancelBooking();
+
+bool isVehicleAvailable(
+    int vehicleId,
+    const Date& pickupDate,
+    const Date& returnDate
+) const;
+
+void smartVehicleAvailability();
+
+void showAlternativeVehicles(
+    const std::string& pickupDate,
+    const std::string& returnDate,
+    const std::string& vehicleType
+);
     void processPickup();
     void processReturn();
     void makePayment();
@@ -82,7 +97,6 @@ private:
     bool isFavorite(int vehicleId) const;
     bool isUsernameTaken(const std::string& username) const;
     bool authenticate(const std::string& username, const std::string& password, std::string& role) const;
-    bool isVehicleAvailable(int vehicleId, const Date& pickup, const Date& returnDate) const;
     std::vector<User> users;
     std::vector<Vehicle> vehicles;
     std::vector<Booking> bookings;
