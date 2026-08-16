@@ -120,7 +120,7 @@ void RentalSystem::displayAbout() {
         "payments, maintenance, reviews, and reports",
         "Data is stored locally using text files"
     });
-    utils::printInfo("This version is designed for learning, offline use, and easy explanation in a viva.");
+    utils::printInfo("This version is designed for learning, offline use, and simple console based applications. It can be further extended for product level application with GUI and database support.");
 }
 
 void RentalSystem::seedSampleData() {
@@ -258,7 +258,6 @@ void RentalSystem::addVehicle() {
     saveVehicles();
     std::cout << "[SUCCESS] Vehicle added successfully.\n";
 }
-
 void RentalSystem::viewVehicles() {
     if (vehicles.empty()) {
         utils::printWarning("No vehicles found.");
@@ -266,7 +265,9 @@ void RentalSystem::viewVehicles() {
     }
 
     utils::printHeader("AVAILABLE VEHICLES");
+
     std::vector<std::vector<std::string>> rows;
+
     for (const auto& vehicle : vehicles) {
         rows.push_back({
             std::to_string(vehicle.getId()),
@@ -278,9 +279,103 @@ void RentalSystem::viewVehicles() {
             vehicle.getStatus()
         });
     }
-    utils::printTable({"ID", "Vehicle Number", "Brand", "Model", "Type", "Price/Day", "Status"}, rows);
-}
 
+    utils::printTable(
+        {"ID", "Vehicle Number", "Brand", "Model",
+         "Type", "Price/Day", "Status"},
+        rows
+    );
+}
+// void RentalSystem::viewVehicles() {
+
+//     if (vehicles.empty()) {
+//         utils::printWarning("No vehicles found.");
+//         return;
+//     }
+
+//     utils::printHeader("VEHICLE AVAILABILITY");
+
+//     std::string pickupInput =
+//         utils::getNonEmptyString(
+//             "Enter pickup date (DD-MM-YYYY): "
+//         );
+
+//     std::string returnInput =
+//         utils::getNonEmptyString(
+//             "Enter return date (DD-MM-YYYY): "
+//         );
+
+//     try {
+
+//         Date pickup =
+//             Date::parse(pickupInput);
+
+//         Date returnDate =
+//             Date::parse(returnInput);
+
+//         if (!pickup.isValid() ||
+//             !returnDate.isValid() ||
+//             !(pickup < returnDate)) {
+
+//             utils::printError(
+//                 "Invalid rental date range."
+//             );
+
+//             return;
+//         }
+
+//         std::vector<std::vector<std::string>> rows;
+
+//         for (const auto& vehicle : vehicles) {
+
+//             bool available =
+//                 isVehicleAvailable(
+//                     vehicle.getId(),
+//                     pickup,
+//                     returnDate
+//                 );
+
+//             std::string status;
+
+//             if (available) {
+//                 status = "AVAILABLE";
+//             } else {
+//                 status = "BOOKED";
+//             }
+
+//             rows.push_back({
+//                 std::to_string(vehicle.getId()),
+//                 vehicle.getVehicleNumber(),
+//                 vehicle.getBrand(),
+//                 vehicle.getModel(),
+//                 vehicle.getType(),
+//                 utils::formatMoney(
+//                     vehicle.getPricePerDay()
+//                 ),
+//                 status
+//             });
+//         }
+
+//         utils::printTable(
+//             {
+//                 "ID",
+//                 "Vehicle Number",
+//                 "Brand",
+//                 "Model",
+//                 "Type",
+//                 "Price/Day",
+//                 "Status"
+//             },
+//             rows
+//         );
+
+//     } catch (const std::exception& e) {
+
+//         utils::printError(
+//             std::string("Invalid date: ") + e.what()
+//         );
+//     }
+// }
 void RentalSystem::browseVehicles() {
     viewVehicles();
 }
@@ -297,7 +392,33 @@ void RentalSystem::loadBookings() {
                 int vehicleId = std::stoi(parts[2]);
                 Date pickupDate = Date::parse(parts[3]);
                 Date returnDate = Date::parse(parts[4]);
-                Booking booking(id, customerId, vehicleId, pickupDate, returnDate, parts[5], parts[6], std::stoi(parts[7]), std::stod(parts[8]), parts[9], Date::parse(parts[10]));
+                std::string couponCode = "";
+double discountAmount = 0.0;
+
+if (parts.size() > 22) {
+    couponCode = parts[22];
+}
+
+if (parts.size() > 23) {
+    discountAmount = std::stod(parts[23]);
+}
+
+Booking booking(
+    id,
+    customerId,
+    vehicleId,
+    pickupDate,
+    returnDate, 
+    parts[5],
+    parts[6],
+    std::stoi(parts[7]),
+    std::stod(parts[8]),
+    parts[9],
+    Date::parse(parts[10]),
+    couponCode,
+    discountAmount
+);
+                // Booking booking(id, customerId, vehicleId, pickupDate, returnDate, parts[5], parts[6], std::stoi(parts[7]), std::stod(parts[8]), parts[9], Date::parse(parts[10]));
                 if (parts.size() > 11) {
                     booking.setPickupCondition(parts[11]);
                 }
@@ -399,7 +520,8 @@ bool RentalSystem::isVehicleAvailable(
 void RentalSystem::saveBookings() {
     std::vector<std::string> lines;
     for (const auto& booking : bookings) {
-        lines.push_back(FileManager::join({std::to_string(booking.getId()), std::to_string(booking.getCustomerId()), std::to_string(booking.getVehicleId()), booking.getPickupDate().toString(), booking.getReturnDate().toString(), booking.getPickupLocation(), booking.getReturnLocation(), std::to_string(booking.getRentalDays()), std::to_string(booking.getRentalPrice()), booking.getStatus(), booking.getCreatedDate().toString(), booking.getPickupCondition(), std::to_string(booking.getOdometerAtPickup()), std::to_string(booking.getFuelAtPickup()), booking.getReturnCondition(), std::to_string(booking.getOdometerAtReturn()), std::to_string(booking.getFuelAtReturn()), booking.getDamageInfo(), std::to_string(booking.getLateDays()), std::to_string(booking.getLateFee()), std::to_string(booking.getFuelCharge()), std::to_string(booking.getDamageCharge())}, '|'));
+        lines.push_back(FileManager::join({std::to_string(booking.getId()), std::to_string(booking.getCustomerId()), std::to_string(booking.getVehicleId()), booking.getPickupDate().toString(), booking.getReturnDate().toString(), booking.getPickupLocation(), booking.getReturnLocation(), std::to_string(booking.getRentalDays()), std::to_string(booking.getRentalPrice()), booking.getStatus(), booking.getCreatedDate().toString(), booking.getPickupCondition(), std::to_string(booking.getOdometerAtPickup()), std::to_string(booking.getFuelAtPickup()), booking.getReturnCondition(), std::to_string(booking.getOdometerAtReturn()), std::to_string(booking.getFuelAtReturn()), booking.getDamageInfo(), std::to_string(booking.getLateDays()), std::to_string(booking.getLateFee()), std::to_string(booking.getFuelCharge()), std::to_string(booking.getDamageCharge()),booking.getCouponCode(),
+std::to_string(booking.getDiscountAmount())}, '|'));
     }
     FileManager::writeLines(kBookingsPath, lines);
 }
@@ -514,43 +636,212 @@ void RentalSystem::createBooking() {
         std::string pickupLocation = utils::getNonEmptyString("Pickup location: ");
         std::string returnLocation = utils::getNonEmptyString("Return location: ");
         int rentalDays = Date::daysBetween(pickup, returnDate);
-        double rentalPrice = rentalDays * vehicleIt->getPricePerDay();
-        double totalAmount = rentalPrice;
+    
+        // double rentalPrice = rentalDays * vehicleIt->getPricePerDay();
+        // double totalAmount = rentalPrice;
 
-        std::string couponCode;
-        if (!coupons.empty()) {
-            couponCode = utils::getNonEmptyString("Coupon code (leave blank to skip): ");
-        }
-        double discount = 0.0;
-        if (!couponCode.empty()) {
-            for (const auto& coupon : coupons) {
-                if (coupon.getCode() == couponCode) {
-                    if (coupon.isValidFor(totalAmount, Date::parse(currentDateString()))) {
-                        discount = coupon.calculateDiscount(totalAmount);
-                        totalAmount -= discount;
-                    } else {
-                        utils::printWarning("Coupon is not valid for this booking.");
-                    }
-                    break;
+        // std::string couponCode;
+        // if (!coupons.empty()) {
+        //     couponCode = utils::getNonEmptyString("Coupon code (leave blank to skip): ");
+        // }
+        // double discount = 0.0;
+        // if (!couponCode.empty()) {
+        //     for (const auto& coupon : coupons) {
+        //         if (coupon.getCode() == couponCode) {
+        //             if (coupon.isValidFor(totalAmount, Date::parse(currentDateString()))) {
+        //                 discount = coupon.calculateDiscount(totalAmount);
+        //                 totalAmount -= discount;
+        //             } else {
+        //                 utils::printWarning("Coupon is not valid for this booking.");
+        //             }
+        //             break;
+        //         }
+        //     }
+        // }
+       double baseRentalPrice =
+    rentalDays * vehicleIt->getPricePerDay();
+
+double discount = 0.0;
+std::string couponCode = "";
+
+if (!coupons.empty()) {
+
+    std::cout << "\n";
+    std::cout << "----------------------------------------\n";
+    std::cout << "COUPON\n";
+    std::cout << "----------------------------------------\n";
+
+    std::string enteredCode =
+        utils::getNonEmptyString(
+            "Coupon code (enter NONE to skip): "
+        );
+
+    if (enteredCode != "NONE" &&
+        enteredCode != "none") {
+
+        bool couponFound = false;
+
+        Date today =
+            Date::parse(currentDateString());
+
+        for (const auto& coupon : coupons) {
+
+            if (coupon.getCode() == enteredCode) {
+
+                couponFound = true;
+
+                if (!coupon.isValidFor(
+                        baseRentalPrice,
+                        today)) {
+
+                    utils::printError(
+                        "Coupon is expired, inactive, "
+                        "usage limit reached, or minimum "
+                        "amount is not satisfied."
+                    );
+
+                    return;
                 }
+
+                discount =
+                    coupon.calculateDiscount(
+                        baseRentalPrice
+                    );
+
+                if (discount <= 0.0) {
+
+                    utils::printError(
+                        "Coupon did not provide a discount."
+                    );
+
+                    return;
+                }
+
+                couponCode =
+                    coupon.getCode();
+
+                break;
             }
         }
 
-        bookings.emplace_back(nextBookingId++, currentUser->getId(), vehicleId, pickup, returnDate, pickupLocation, returnLocation, rentalDays, rentalPrice, "BOOKED", Date::parse(currentDateString()));
-        vehicleIt->setStatus("BOOKED");
-        saveVehicles();
-        saveBookings();
-        addNotification("Booking created for vehicle #" + std::to_string(vehicleId) + ".", "BOOKING");
-        if (discount > 0.0) {
-            std::cout << "[SUCCESS] Booking created successfully with coupon discount of Rs. " << utils::formatMoney(discount) << "\n";
-        } else {
-            std::cout << "[SUCCESS] Booking created successfully.\n";
+        if (!couponFound) {
+
+            utils::printError(
+                "Invalid coupon code."
+            );
+
+            return;
         }
-    } catch (const std::exception& ex) {
-        std::cout << "[ERROR] " << ex.what() << "\n";
     }
 }
 
+double finalRentalPrice =
+    baseRentalPrice - discount;
+
+bookings.emplace_back(
+    nextBookingId++,
+    currentUser->getId(),
+    vehicleId,
+    pickup,
+    returnDate,
+    pickupLocation,
+    returnLocation,
+    rentalDays,
+    finalRentalPrice,
+    "BOOKED",
+    Date::parse(currentDateString()),
+    couponCode,
+    discount
+);
+
+auto vehicleIt = std::find_if(
+    vehicles.begin(),
+    vehicles.end(),
+    [&](const Vehicle& vehicle) {
+        return vehicle.getId() == vehicleId;
+    }
+);
+
+if (vehicleIt != vehicles.end()) {
+    vehicleIt->setStatus("BOOKED");
+    saveVehicles();
+}
+
+// Update coupon usage
+if (!couponCode.empty()) {
+    for (auto& coupon : coupons) {
+        if (coupon.getCode() == couponCode) {
+            coupon.incrementUsage();
+            break;
+        }
+    }
+
+    saveCoupons();
+}
+
+saveBookings();
+if (!couponCode.empty()) {
+
+    for (auto& coupon : coupons) {
+
+        if (coupon.getCode() == couponCode) {
+
+            coupon.incrementUsage();
+            break;
+        }
+    }
+
+    saveCoupons();
+}
+saveBookings();
+if (!couponCode.empty()) {
+
+    for (auto& coupon : coupons) {
+
+        if (coupon.getCode() == couponCode) {
+
+            coupon.incrementUsage();
+            break;
+        }
+    }
+
+    saveCoupons();
+}
+
+saveBookings();
+
+// ===== BOOKING SUCCESS MESSAGE =====
+
+std::cout << "\n";
+std::cout << "========================================\n";
+std::cout << "        BOOKING CREATED SUCCESSFULLY\n";
+std::cout << "========================================\n";
+
+std::cout << "Base Rental   : Rs. "
+          << utils::formatMoney(baseRentalPrice)
+          << "\n";
+
+if (!couponCode.empty()) {
+
+    std::cout << "Coupon        : "
+              << couponCode
+              << "\n";
+
+    std::cout << "Discount      : Rs. "
+              << utils::formatMoney(discount)
+              << "\n";
+}
+
+std::cout << "Final Rental  : Rs. "
+          << utils::formatMoney(finalRentalPrice)
+          << "\n";
+
+std::cout << "========================================\n";
+
+    } catch (const std::invalid_argument& e) {
+        std::cout << "[ERROR] Invalid date format.\n";
+    }
+}
 void RentalSystem::viewBookings() {
     if (bookings.empty()) {
         std::cout << "No bookings found.\n";
@@ -1475,7 +1766,8 @@ void RentalSystem::showCustomerDashboard() {
         std::cout << "[11] View Favorite Vehicles\n";
         std::cout << "[12] Coupons\n";
         std::cout << "[13] Notifications\n";
-        std::cout << "[14] Logout\n";
+        std::cout << "[14] Review Vehicle\n";
+        std::cout << "[15] Logout\n";
 
         std::cout << "\n";
 
@@ -1535,8 +1827,12 @@ void RentalSystem::showCustomerDashboard() {
             case 13:
                 viewNotifications();
                 break;
-            
+
             case 14:
+                addReview();
+                break;  
+            
+            case 15:
                 utils::printSuccess(
                     "Logged out."
                 );
@@ -1548,7 +1844,7 @@ void RentalSystem::showCustomerDashboard() {
                 );
         }
 
-        if (choice != 14) {
+        if (choice != 15) {
             utils::pauseScreen();
         }
     }

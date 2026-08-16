@@ -29,11 +29,16 @@ bool Coupon::isValidFor(double amount, const Date& today) const {
 }
 
 double Coupon::calculateDiscount(double amount) const {
-    if (!isValidFor(amount, Date::parse("01-01-2099"))) {
-        return 0.0;
-    }
     if (discountType == "FIXED") {
         return std::min(amount, discountValue);
     }
-    return amount * (discountValue / 100.0);
+
+    if (discountType == "PERCENT") {
+        double discount =
+            amount * (discountValue / 100.0);
+
+        return std::min(amount, discount);
+    }
+
+    return 0.0;
 }

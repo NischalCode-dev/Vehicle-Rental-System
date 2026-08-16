@@ -55,16 +55,39 @@ Invoice::Invoice(const Booking& booking,
 std::string Invoice::buildText() const {
     std::ostringstream oss;
 
-    double rentalCost = booking.getRentalPrice();
-    double lateFee = booking.getLateFee();
-    double fuelCharge = booking.getFuelCharge();
-    double damageCharge = booking.getDamageCharge();
+    // double rentalCost = booking.getRentalPrice();
+    // double lateFee = booking.getLateFee();
+    // double fuelCharge = booking.getFuelCharge();
+    // double damageCharge = booking.getDamageCharge();
 
-    double totalAmount =
-        rentalCost +
-        lateFee +
-        fuelCharge +
-        damageCharge;
+    // double totalAmount =
+    //     rentalCost +
+    //     lateFee +
+    //     fuelCharge +
+    //     damageCharge;
+    double finalRentalCost =
+    booking.getRentalPrice();
+
+double discount =
+    booking.getDiscountAmount();
+
+double baseRentalCost =
+    finalRentalCost + discount;
+
+double lateFee =
+    booking.getLateFee();
+
+double fuelCharge =
+    booking.getFuelCharge();
+
+double damageCharge =
+    booking.getDamageCharge();
+
+double totalAmount =
+    finalRentalCost +
+    lateFee +
+    fuelCharge +
+    damageCharge;
 
     oss << "\n";
     oss << "============================================================\n";
@@ -119,8 +142,24 @@ std::string Invoice::buildText() const {
     oss << "CHARGES\n";
     oss << "------------------------------------------------------------\n";
 
-    oss << "Base Rental       : Rs. "
-        << utils::formatMoney(rentalCost) << "\n";
+   oss << "Base Rental       : Rs. "
+    << utils::formatMoney(baseRentalCost)
+    << "\n";
+
+if (!booking.getCouponCode().empty()) {
+
+    oss << "Coupon            : "
+        << booking.getCouponCode()
+        << "\n";
+
+    oss << "Discount          : -Rs. "
+        << utils::formatMoney(discount)
+        << "\n";
+
+    oss << "Rental After Disc.: Rs. "
+        << utils::formatMoney(finalRentalCost)
+        << "\n";
+}
 
     oss << "Late Fee          : Rs. "
         << utils::formatMoney(lateFee) << "\n";
