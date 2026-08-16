@@ -47,7 +47,6 @@ void RentalSystem::run() {
         utils::printHeader("\nVEHICLE RENTAL SYSTEM");
         utils::printBox("WELCOME", {
             "\nOffline vehicle rental management system",
-            "Demo admin login: admin / admin123",
             "Register a customer account or browse vehicles",
             "All data is stored locally in text files"
         });
@@ -1451,86 +1450,6 @@ void RentalSystem::showAdminDashboard() {
     }
 }
 
-// void RentalSystem::showCustomerDashboard() {
-//     while (true) {
-//         utils::clearScreen();
-//         utils::printHeader("CUSTOMER DASHBOARD");
-//         utils::printInfo("Welcome " + currentUser->getName() + ".");
-//         std::cout << "[1] Browse Vehicles\n";
-//         std::cout << "[2] Create Booking\n";
-//         std::cout << "[3] My Bookings\n";
-//         std::cout << "[4] Cancel Booking\n";
-//         std::cout << "[5] Add Review\n";
-//         std::cout << "[6] Add Favorite\n";
-//         std::cout << "[7] Remove Favorite\n";
-//         std::cout << "[8] View Favorites\n";
-//         std::cout << "[9] Recommended Vehicles\n";
-//         std::cout << "[10] Coupons\n";
-//         std::cout << "[11] Notifications\n";
-//         std::cout << "[12] Logout\n";
-//         int choice = utils::getInt("Enter choice: ");
-//         switch (choice) {
-//             case 1:
-//                 browseVehicles();
-//                 break;
-//             case 2:
-//                 createBooking();
-//                 break;
-//             case 3:
-//                 viewBookings();
-//                 break;
-//             case 4:
-//                 cancelBooking();
-//                 break;
-//             case 5:
-//                 addReview();
-//                 break;
-//             case 6:
-//                 addFavorite();
-//                 break;
-//             case 7:
-//                 removeFavorite();
-//                 break;
-//             case 8:
-//                 viewFavorites();
-//                 break;
-//             case 9:
-//                 showRecommendations();
-//                 break;
-//             case 10:
-//                 showCouponMenu();
-//                 break;
-//             case 11: {
-//                 while (true) {
-//                     utils::printHeader("NOTIFICATION CENTER");
-//                     std::cout << "[1] View Notifications\n";
-//                     std::cout << "[2] Mark Notification as Read\n";
-//                     std::cout << "[3] Back\n";
-//                     int notificationChoice = utils::getInt("Enter choice: ");
-//                     if (notificationChoice == 1) {
-//                         viewNotifications();
-//                     } else if (notificationChoice == 2) {
-//                         markNotificationRead();
-//                     } else if (notificationChoice == 3) {
-//                         break;
-//                     } else {
-//                         utils::printError("Invalid choice.");
-//                     }
-//                     utils::pauseScreen();
-//                 }
-//                 break;
-//             }
-//             case 12:
-//                 utils::printSuccess("Logged out.");
-//                 return;
-//             default:
-//                 utils::printError("Invalid choice.");
-//         }
-//         if (choice != 12) {
-//             utils::pauseScreen();
-//         }
-//     }
-// }
 void RentalSystem::showCustomerDashboard() {
     while (true) {
         utils::clearScreen();
