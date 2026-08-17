@@ -74,6 +74,7 @@ void showAlternativeVehicles(
     void addReview();
     void showReports();
     void showAdminDashboard();
+    void removeVehicle();
     void showCustomerDashboard();
     void loadCoupons();
     void saveCoupons();

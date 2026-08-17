@@ -11,7 +11,8 @@
 #include "FileManager.h"
 #include "Utils.h"
 
-namespace {
+namespace
+{
     const std::string kUsersPath = "data/users.txt";
     const std::string kVehiclesPath = "data/vehicles.txt";
     const std::string kBookingsPath = "data/bookings.txt";
@@ -22,16 +23,18 @@ namespace {
     const std::string kNotificationsPath = "data/notifications.txt";
     const std::string kFavoritesPath = "data/favorites.txt";
 
-    std::string currentDateString() {
+    std::string currentDateString()
+    {
         std::time_t now = std::time(nullptr);
-        std::tm* local = std::localtime(&now);
+        std::tm *local = std::localtime(&now);
         char buffer[11];
         std::strftime(buffer, sizeof(buffer), "%d-%m-%Y", local);
         return std::string(buffer);
     }
 }
 
-RentalSystem::RentalSystem() : currentUser(nullptr), loggedIn(false), nextUserId(1), nextVehicleId(1), nextBookingId(1), nextPaymentId(1), nextMaintenanceId(1), nextReviewId(1) {
+RentalSystem::RentalSystem() : currentUser(nullptr), loggedIn(false), nextUserId(1), nextVehicleId(1), nextBookingId(1), nextPaymentId(1), nextMaintenanceId(1), nextReviewId(1)
+{
     initializeDataFiles();
     loadUsers();
     loadVehicles();
@@ -41,15 +44,15 @@ RentalSystem::RentalSystem() : currentUser(nullptr), loggedIn(false), nextUserId
     loadReviews();
 }
 
-void RentalSystem::run() {
-    while (true) {
+void RentalSystem::run()
+{
+    while (true)
+    {
         utils::clearScreen();
         utils::printHeader("\nVEHICLE RENTAL SYSTEM");
-        utils::printBox("WELCOME", {
-            "\nOffline vehicle rental management system",
-            "Register a customer account or browse vehicles",
-            "All data is stored locally in text files"
-        });
+        utils::printBox("WELCOME", {"\nOffline vehicle rental management system",
+                                    "Register a customer account or browse vehicles",
+                                    "All data is stored locally in text files"});
         utils::printDivider(60);
         std::cout << "[1] Login\n";
         std::cout << "[2] Register Customer\n";
@@ -58,32 +61,35 @@ void RentalSystem::run() {
         std::cout << "[5] Exit\n";
         int choice = utils::getInt("Enter choice: ");
 
-        switch (choice) {
-            case 1:
-                loginUser();
-                break;
-            case 2:
-                registerCustomer();
-                break;
-            case 3:
-                browseVehicles();
-                break;
-            case 4:
-                displayAbout();
-                break;
-            case 5:
-                utils::printSuccess("Goodbye!");
-                return;
-            default:
-                utils::printError("Invalid choice.");
+        switch (choice)
+        {
+        case 1:
+            loginUser();
+            break;
+        case 2:
+            registerCustomer();
+            break;
+        case 3:
+            browseVehicles();
+            break;
+        case 4:
+            displayAbout();
+            break;
+        case 5:
+            utils::printSuccess("Exiting the application. Goodbye!");
+            return;
+        default:
+            utils::printError("Invalid choice.");
         }
-        if (choice != 5) {
+        if (choice != 5)
+        {
             utils::pauseScreen();
         }
     }
 }
 
-void RentalSystem::initializeDataFiles() {
+void RentalSystem::initializeDataFiles()
+{
     FileManager::ensureFile(kUsersPath);
     FileManager::ensureFile(kVehiclesPath);
     FileManager::ensureFile(kBookingsPath);
@@ -99,32 +105,36 @@ void RentalSystem::initializeDataFiles() {
     loadFavorites();
 }
 
-void RentalSystem::showMainMenu() {
+void RentalSystem::showMainMenu()
+{
     std::cout << "Main Menu placeholder.\n";
 }
 
-void RentalSystem::showAdminMenu() {
+void RentalSystem::showAdminMenu()
+{
     std::cout << "Admin menu placeholder.\n";
 }
 
-void RentalSystem::showCustomerMenu() {
+void RentalSystem::showCustomerMenu()
+{
     std::cout << "Customer menu placeholder.\n";
 }
 
-void RentalSystem::displayAbout() {
+void RentalSystem::displayAbout()
+{
     utils::clearScreen();
     utils::printHeader("ABOUT THIS PROJECT");
-    utils::printBox("PROJECT OVERVIEW", {
-        "Modular C++ console-based rental system",
-        "Features include authentication, vehicles, bookings,",
-        "payments, maintenance, reviews, and reports",
-        "Data is stored locally using text files"
-    });
+    utils::printBox("PROJECT OVERVIEW", {"Modular C++ console-based rental system",
+                                         "Features include authentication, vehicles, bookings,",
+                                         "payments, maintenance, reviews, and reports",
+                                         "Data is stored locally using text files"});
     utils::printInfo("This version is designed for learning, offline use, and simple console based applications. It can be further extended for product level application with GUI and database support.");
 }
 
-void RentalSystem::seedSampleData() {
-    if (!vehicles.empty()) {
+void RentalSystem::seedSampleData()
+{
+    if (!vehicles.empty())
+    {
         return;
     }
 
@@ -135,22 +145,26 @@ void RentalSystem::seedSampleData() {
     saveVehicles();
 }
 
-void RentalSystem::registerCustomer() {
+void RentalSystem::registerCustomer()
+{
     std::string name = utils::getNonEmptyString("Full name: ");
     std::string email = utils::getNonEmptyString("Email: ");
     std::string phone = utils::getNonEmptyString("Phone: ");
     std::string username = utils::getNonEmptyString("Username: ");
     std::string password = utils::getNonEmptyString("Password: ");
 
-    if (!utils::isValidEmail(email)) {
+    if (!utils::isValidEmail(email))
+    {
         std::cout << "[ERROR] Invalid email format.\n";
         return;
     }
-    if (!utils::isValidPhone(phone)) {
+    if (!utils::isValidPhone(phone))
+    {
         std::cout << "[ERROR] Invalid phone number.\n";
         return;
     }
-    if (isUsernameTaken(username)) {
+    if (isUsernameTaken(username))
+    {
         std::cout << "[ERROR] Username already exists.\n";
         return;
     }
@@ -160,88 +174,115 @@ void RentalSystem::registerCustomer() {
     std::cout << "[SUCCESS] Customer registered successfully.\n";
 }
 
-void RentalSystem::loginUser() {
+void RentalSystem::loginUser()
+{
     std::string username = utils::getNonEmptyString("Username: ");
     std::string password = utils::getNonEmptyString("Password: ");
 
     std::string role;
-    if (authenticate(username, password, role)) {
+    if (authenticate(username, password, role))
+    {
         loggedIn = true;
         currentUser = nullptr;
-        if (role != "admin") {
-            auto it = std::find_if(users.begin(), users.end(), [&](const User& user) {
-                return user.getUsername() == username;
-            });
-            if (it != users.end()) {
+        if (role != "admin")
+        {
+            auto it = std::find_if(users.begin(), users.end(), [&](const User &user)
+                                   { return user.getUsername() == username; });
+            if (it != users.end())
+            {
                 currentUser = &(*it);
             }
         }
         std::cout << "[SUCCESS] Login successful.\n";
-        if (role == "admin") {
+        if (role == "admin")
+        {
             showAdminDashboard();
-        } else {
+        }
+        else
+        {
             showCustomerDashboard();
         }
-    } else {
+    }
+    else
+    {
         std::cout << "[ERROR] Invalid username or password.\n";
     }
 }
 
-void RentalSystem::loadUsers() {
+void RentalSystem::loadUsers()
+{
     users.clear();
     auto lines = FileManager::readLines(kUsersPath);
-    for (const std::string& line : lines) {
+    for (const std::string &line : lines)
+    {
         auto parts = FileManager::split(line, '|');
-        if (parts.size() >= 7) {
-            try {
+        if (parts.size() >= 7)
+        {
+            try
+            {
                 int id = std::stoi(parts[0]);
                 users.emplace_back(id, parts[1], parts[2], parts[3], parts[4], parts[5], parts[6]);
-                if (id >= nextUserId) {
+                if (id >= nextUserId)
+                {
                     nextUserId = id + 1;
                 }
-            } catch (...) {
+            }
+            catch (...)
+            {
                 continue;
             }
         }
     }
 }
 
-void RentalSystem::saveUsers() {
+void RentalSystem::saveUsers()
+{
     std::vector<std::string> lines;
-    for (const auto& user : users) {
+    for (const auto &user : users)
+    {
         lines.push_back(FileManager::join({std::to_string(user.getId()), user.getName(), user.getEmail(), user.getPhone(), user.getUsername(), user.getPassword(), user.getRole()}, '|'));
     }
     FileManager::writeLines(kUsersPath, lines);
 }
 
-void RentalSystem::loadVehicles() {
+void RentalSystem::loadVehicles()
+{
     vehicles.clear();
     auto lines = FileManager::readLines(kVehiclesPath);
-    for (const std::string& line : lines) {
+    for (const std::string &line : lines)
+    {
         auto parts = FileManager::split(line, '|');
-        if (parts.size() >= 13) {
-            try {
+        if (parts.size() >= 13)
+        {
+            try
+            {
                 int id = std::stoi(parts[0]);
                 vehicles.emplace_back(id, parts[1], parts[2], parts[3], parts[4], std::stoi(parts[5]), parts[6], parts[7], parts[8], std::stoi(parts[9]), std::stod(parts[10]), std::stod(parts[11]), parts[12]);
-                if (id >= nextVehicleId) {
+                if (id >= nextVehicleId)
+                {
                     nextVehicleId = id + 1;
                 }
-            } catch (...) {
+            }
+            catch (...)
+            {
                 continue;
             }
         }
     }
 }
 
-void RentalSystem::saveVehicles() {
+void RentalSystem::saveVehicles()
+{
     std::vector<std::string> lines;
-    for (const auto& vehicle : vehicles) {
+    for (const auto &vehicle : vehicles)
+    {
         lines.push_back(FileManager::join({std::to_string(vehicle.getId()), vehicle.getVehicleNumber(), vehicle.getBrand(), vehicle.getModel(), vehicle.getType(), std::to_string(vehicle.getManufacturingYear()), vehicle.getColor(), vehicle.getFuelType(), vehicle.getTransmission(), std::to_string(vehicle.getSeatingCapacity()), std::to_string(vehicle.getPricePerDay()), std::to_string(vehicle.getMileage()), vehicle.getStatus()}, '|'));
     }
     FileManager::writeLines(kVehiclesPath, lines);
 }
 
-void RentalSystem::addVehicle() {
+void RentalSystem::addVehicle()
+{
     std::string vehicleNumber = utils::getNonEmptyString("Vehicle number: ");
     std::string brand = utils::getNonEmptyString("Brand: ");
     std::string model = utils::getNonEmptyString("Model: ");
@@ -258,8 +299,10 @@ void RentalSystem::addVehicle() {
     saveVehicles();
     std::cout << "[SUCCESS] Vehicle added successfully.\n";
 }
-void RentalSystem::viewVehicles() {
-    if (vehicles.empty()) {
+void RentalSystem::viewVehicles()
+{
+    if (vehicles.empty())
+    {
         utils::printWarning("No vehicles found.");
         return;
     }
@@ -268,23 +311,21 @@ void RentalSystem::viewVehicles() {
 
     std::vector<std::vector<std::string>> rows;
 
-    for (const auto& vehicle : vehicles) {
-        rows.push_back({
-            std::to_string(vehicle.getId()),
-            vehicle.getVehicleNumber(),
-            vehicle.getBrand(),
-            vehicle.getModel(),
-            vehicle.getType(),
-            utils::formatMoney(vehicle.getPricePerDay()),
-            vehicle.getStatus()
-        });
+    for (const auto &vehicle : vehicles)
+    {
+        rows.push_back({std::to_string(vehicle.getId()),
+                        vehicle.getVehicleNumber(),
+                        vehicle.getBrand(),
+                        vehicle.getModel(),
+                        vehicle.getType(),
+                        utils::formatMoney(vehicle.getPricePerDay()),
+                        vehicle.getStatus()});
     }
 
     utils::printTable(
         {"ID", "Vehicle Number", "Brand", "Model",
          "Type", "Price/Day", "Status"},
-        rows
-    );
+        rows);
 }
 // void RentalSystem::viewVehicles() {
 
@@ -376,87 +417,214 @@ void RentalSystem::viewVehicles() {
 //         );
 //     }
 // }
-void RentalSystem::browseVehicles() {
+void RentalSystem::browseVehicles()
+{
     viewVehicles();
 }
+void RentalSystem::removeVehicle()
+{
 
-void RentalSystem::loadBookings() {
+    if (vehicles.empty())
+    {
+        utils::printWarning("No vehicles available to remove.");
+        return;
+    }
+
+    utils::printHeader("REMOVE VEHICLE");
+
+    // Show existing vehicles
+    std::vector<std::vector<std::string>> rows;
+
+    for (const auto &vehicle : vehicles)
+    {
+        rows.push_back({std::to_string(vehicle.getId()),
+                        vehicle.getVehicleNumber(),
+                        vehicle.getBrand(),
+                        vehicle.getModel(),
+                        vehicle.getType(),
+                        utils::formatMoney(vehicle.getPricePerDay()),
+                        vehicle.getStatus()});
+    }
+
+    utils::printTable(
+        {"ID",
+         "Vehicle Number",
+         "Brand",
+         "Model",
+         "Type",
+         "Price/Day",
+         "Status"},
+        rows);
+
+    std::cout << "\n";
+
+    // Ask for vehicle ID
+    int vehicleId = utils::getInt(
+        "Enter Vehicle ID to remove: ");
+
+    // Ask for vehicle number
+    std::string vehicleNumber =
+        utils::getNonEmptyString(
+            "Enter Vehicle Number to confirm: ");
+
+    // Find vehicle
+    auto it = std::find_if(
+        vehicles.begin(),
+        vehicles.end(),
+        [&](const Vehicle &vehicle)
+        {
+            return vehicle.getId() == vehicleId &&
+                   vehicle.getVehicleNumber() == vehicleNumber;
+        });
+
+    // Vehicle not found or details don't match
+    if (it == vehicles.end())
+    {
+
+        utils::printError(
+            "Vehicle ID and Vehicle Number do not match.");
+
+        return;
+    }
+
+    // Don't allow removal of currently booked vehicle
+    if (it->getStatus() == "BOOKED")
+    {
+
+        utils::printError(
+            "This vehicle is currently booked and cannot be removed.");
+
+        return;
+    }
+
+    // Confirmation
+    std::cout << "\n";
+    std::cout << "Vehicle selected for removal:\n";
+    std::cout << "ID     : " << it->getId() << "\n";
+    std::cout << "Number : " << it->getVehicleNumber() << "\n";
+    std::cout << "Brand  : " << it->getBrand() << "\n";
+    std::cout << "Model  : " << it->getModel() << "\n";
+
+    std::string confirmation =
+        utils::getNonEmptyString(
+            "\nAre you sure you want to remove this vehicle? (YES/NO): ");
+
+    if (confirmation != "YES" &&
+        confirmation != "yes")
+    {
+
+        utils::printWarning(
+            "Vehicle removal cancelled.");
+
+        return;
+    }
+
+    // Remove vehicle from vector
+    vehicles.erase(it);
+
+    // Save updated vehicle list
+    saveVehicles();
+
+    utils::printSuccess(
+        "Vehicle removed successfully.");
+}
+
+void RentalSystem::loadBookings()
+{
     bookings.clear();
     auto lines = FileManager::readLines(kBookingsPath);
-    for (const std::string& line : lines) {
+    for (const std::string &line : lines)
+    {
         auto parts = FileManager::split(line, '|');
-        if (parts.size() >= 11) {
-            try {
+        if (parts.size() >= 11)
+        {
+            try
+            {
                 int id = std::stoi(parts[0]);
                 int customerId = std::stoi(parts[1]);
                 int vehicleId = std::stoi(parts[2]);
                 Date pickupDate = Date::parse(parts[3]);
                 Date returnDate = Date::parse(parts[4]);
                 std::string couponCode = "";
-double discountAmount = 0.0;
+                double discountAmount = 0.0;
 
-if (parts.size() > 22) {
-    couponCode = parts[22];
-}
+                if (parts.size() > 22)
+                {
+                    couponCode = parts[22];
+                }
 
-if (parts.size() > 23) {
-    discountAmount = std::stod(parts[23]);
-}
+                if (parts.size() > 23)
+                {
+                    discountAmount = std::stod(parts[23]);
+                }
 
-Booking booking(
-    id,
-    customerId,
-    vehicleId,
-    pickupDate,
-    returnDate, 
-    parts[5],
-    parts[6],
-    std::stoi(parts[7]),
-    std::stod(parts[8]),
-    parts[9],
-    Date::parse(parts[10]),
-    couponCode,
-    discountAmount
-);
+                Booking booking(
+                    id,
+                    customerId,
+                    vehicleId,
+                    pickupDate,
+                    returnDate,
+                    parts[5],
+                    parts[6],
+                    std::stoi(parts[7]),
+                    std::stod(parts[8]),
+                    parts[9],
+                    Date::parse(parts[10]),
+                    couponCode,
+                    discountAmount);
                 // Booking booking(id, customerId, vehicleId, pickupDate, returnDate, parts[5], parts[6], std::stoi(parts[7]), std::stod(parts[8]), parts[9], Date::parse(parts[10]));
-                if (parts.size() > 11) {
+                if (parts.size() > 11)
+                {
                     booking.setPickupCondition(parts[11]);
                 }
-                if (parts.size() > 12) {
+                if (parts.size() > 12)
+                {
                     booking.setOdometerAtPickup(std::stoi(parts[12]));
                 }
-                if (parts.size() > 13) {
+                if (parts.size() > 13)
+                {
                     booking.setFuelAtPickup(std::stoi(parts[13]));
                 }
-                if (parts.size() > 14) {
+                if (parts.size() > 14)
+                {
                     booking.setReturnCondition(parts[14]);
                 }
-                if (parts.size() > 15) {
+                if (parts.size() > 15)
+                {
                     booking.setOdometerAtReturn(std::stoi(parts[15]));
                 }
-                if (parts.size() > 16) {
+                if (parts.size() > 16)
+                {
                     booking.setFuelAtReturn(std::stoi(parts[16]));
                 }
-                if (parts.size() > 17) {
+                if (parts.size() > 17)
+                {
                     booking.setDamageInfo(parts[17]);
                 }
-                if (parts.size() > 18) {
+                if (parts.size() > 18)
+                {
                     booking.setLateDays(std::stoi(parts[18]));
                 }
-                if (parts.size() > 19) {
+                if (parts.size() > 19)
+                {
                     booking.setLateFee(std::stod(parts[19]));
                 }
-                if (parts.size() > 20) {
+                if (parts.size() > 20)
+                {
                     booking.setFuelCharge(std::stod(parts[20]));
                 }
-                if (parts.size() > 21) {
+                if (parts.size() > 21)
+                {
                     booking.setDamageCharge(std::stod(parts[21]));
                 }
                 bookings.push_back(booking);
-                if (id >= nextBookingId) {
+                if (id >= nextBookingId)
+                {
                     nextBookingId = id + 1;
                 }
-            } catch (...) {
+            }
+            catch (...)
+            {
                 continue;
             }
         }
@@ -464,33 +632,38 @@ Booking booking(
 }
 bool RentalSystem::isVehicleAvailable(
     int vehicleId,
-    const Date& pickup,
-    const Date& returnDate
-) const {
+    const Date &pickup,
+    const Date &returnDate) const
+{
 
     // Invalid date range
     if (!pickup.isValid() ||
         !returnDate.isValid() ||
-        !(pickup < returnDate)) {
+        !(pickup < returnDate))
+    {
 
         return false;
     }
 
     // Check every existing booking
-    for (const auto& booking : bookings) {
+    for (const auto &booking : bookings)
+    {
 
         // Different vehicle
-        if (booking.getVehicleId() != vehicleId) {
+        if (booking.getVehicleId() != vehicleId)
+        {
             continue;
         }
 
         // Cancelled bookings don't block the vehicle
-        if (booking.getStatus() == "CANCELLED") {
+        if (booking.getStatus() == "CANCELLED")
+        {
             continue;
         }
 
         // Completed bookings don't block future rentals
-        if (booking.getStatus() == "COMPLETED") {
+        if (booking.getStatus() == "COMPLETED")
+        {
             continue;
         }
 
@@ -509,7 +682,8 @@ bool RentalSystem::isVehicleAvailable(
          */
 
         if (pickup < existingReturn &&
-            returnDate > existingPickup) {
+            returnDate > existingPickup)
+        {
 
             return false;
         }
@@ -517,99 +691,130 @@ bool RentalSystem::isVehicleAvailable(
 
     return true;
 }
-void RentalSystem::saveBookings() {
+void RentalSystem::saveBookings()
+{
     std::vector<std::string> lines;
-    for (const auto& booking : bookings) {
-        lines.push_back(FileManager::join({std::to_string(booking.getId()), std::to_string(booking.getCustomerId()), std::to_string(booking.getVehicleId()), booking.getPickupDate().toString(), booking.getReturnDate().toString(), booking.getPickupLocation(), booking.getReturnLocation(), std::to_string(booking.getRentalDays()), std::to_string(booking.getRentalPrice()), booking.getStatus(), booking.getCreatedDate().toString(), booking.getPickupCondition(), std::to_string(booking.getOdometerAtPickup()), std::to_string(booking.getFuelAtPickup()), booking.getReturnCondition(), std::to_string(booking.getOdometerAtReturn()), std::to_string(booking.getFuelAtReturn()), booking.getDamageInfo(), std::to_string(booking.getLateDays()), std::to_string(booking.getLateFee()), std::to_string(booking.getFuelCharge()), std::to_string(booking.getDamageCharge()),booking.getCouponCode(),
-std::to_string(booking.getDiscountAmount())}, '|'));
+    for (const auto &booking : bookings)
+    {
+        lines.push_back(FileManager::join({std::to_string(booking.getId()), std::to_string(booking.getCustomerId()), std::to_string(booking.getVehicleId()), booking.getPickupDate().toString(), booking.getReturnDate().toString(), booking.getPickupLocation(), booking.getReturnLocation(), std::to_string(booking.getRentalDays()), std::to_string(booking.getRentalPrice()), booking.getStatus(), booking.getCreatedDate().toString(), booking.getPickupCondition(), std::to_string(booking.getOdometerAtPickup()), std::to_string(booking.getFuelAtPickup()), booking.getReturnCondition(), std::to_string(booking.getOdometerAtReturn()), std::to_string(booking.getFuelAtReturn()), booking.getDamageInfo(), std::to_string(booking.getLateDays()), std::to_string(booking.getLateFee()), std::to_string(booking.getFuelCharge()), std::to_string(booking.getDamageCharge()), booking.getCouponCode(),
+                                           std::to_string(booking.getDiscountAmount())},
+                                          '|'));
     }
     FileManager::writeLines(kBookingsPath, lines);
 }
 
-
-void RentalSystem::loadPayments() {
+void RentalSystem::loadPayments()
+{
     payments.clear();
     auto lines = FileManager::readLines(kPaymentsPath);
-    for (const std::string& line : lines) {
+    for (const std::string &line : lines)
+    {
         auto parts = FileManager::split(line, '|');
-        if (parts.size() >= 8) {
-            try {
+        if (parts.size() >= 8)
+        {
+            try
+            {
                 int id = std::stoi(parts[0]);
                 payments.emplace_back(id, std::stoi(parts[1]), std::stoi(parts[2]), std::stod(parts[3]), parts[4], parts[5], parts[6], parts[7]);
-                if (id >= nextPaymentId) {
+                if (id >= nextPaymentId)
+                {
                     nextPaymentId = id + 1;
                 }
-            } catch (...) {
+            }
+            catch (...)
+            {
                 continue;
             }
         }
     }
 }
 
-void RentalSystem::savePayments() {
+void RentalSystem::savePayments()
+{
     std::vector<std::string> lines;
-    for (const auto& payment : payments) {
+    for (const auto &payment : payments)
+    {
         lines.push_back(FileManager::join({std::to_string(payment.getId()), std::to_string(payment.getBookingId()), std::to_string(payment.getCustomerId()), std::to_string(payment.getAmount()), payment.getMethod(), payment.getPaymentDate(), payment.getTransactionId(), payment.getStatus()}, '|'));
     }
     FileManager::writeLines(kPaymentsPath, lines);
 }
 
-void RentalSystem::loadMaintenance() {
+void RentalSystem::loadMaintenance()
+{
     maintenanceRecords.clear();
     auto lines = FileManager::readLines(kMaintenancePath);
-    for (const std::string& line : lines) {
+    for (const std::string &line : lines)
+    {
         auto parts = FileManager::split(line, '|');
-        if (parts.size() >= 7) {
-            try {
+        if (parts.size() >= 7)
+        {
+            try
+            {
                 int id = std::stoi(parts[0]);
                 maintenanceRecords.emplace_back(id, std::stoi(parts[1]), parts[2], Date::parse(parts[3]), std::stod(parts[4]), parts[5], Date::parse(parts[6]));
-                if (id >= nextMaintenanceId) {
+                if (id >= nextMaintenanceId)
+                {
                     nextMaintenanceId = id + 1;
                 }
-            } catch (...) {
+            }
+            catch (...)
+            {
                 continue;
             }
         }
     }
 }
 
-void RentalSystem::saveMaintenance() {
+void RentalSystem::saveMaintenance()
+{
     std::vector<std::string> lines;
-    for (const auto& maintenance : maintenanceRecords) {
+    for (const auto &maintenance : maintenanceRecords)
+    {
         lines.push_back(FileManager::join({std::to_string(maintenance.getId()), std::to_string(maintenance.getVehicleId()), maintenance.getServiceType(), maintenance.getServiceDate().toString(), std::to_string(maintenance.getCost()), maintenance.getDescription(), maintenance.getNextServiceDate().toString()}, '|'));
     }
     FileManager::writeLines(kMaintenancePath, lines);
 }
 
-void RentalSystem::loadReviews() {
+void RentalSystem::loadReviews()
+{
     reviews.clear();
     auto lines = FileManager::readLines(kReviewsPath);
-    for (const std::string& line : lines) {
+    for (const std::string &line : lines)
+    {
         auto parts = FileManager::split(line, '|');
-        if (parts.size() >= 6) {
-            try {
+        if (parts.size() >= 6)
+        {
+            try
+            {
                 int id = std::stoi(parts[0]);
                 reviews.emplace_back(id, std::stoi(parts[1]), std::stoi(parts[2]), std::stoi(parts[3]), parts[4], Date::parse(parts[5]));
-                if (id >= nextReviewId) {
+                if (id >= nextReviewId)
+                {
                     nextReviewId = id + 1;
                 }
-            } catch (...) {
+            }
+            catch (...)
+            {
                 continue;
             }
         }
     }
 }
 
-void RentalSystem::saveReviews() {
+void RentalSystem::saveReviews()
+{
     std::vector<std::string> lines;
-    for (const auto& review : reviews) {
+    for (const auto &review : reviews)
+    {
         lines.push_back(FileManager::join({std::to_string(review.getId()), std::to_string(review.getCustomerId()), std::to_string(review.getVehicleId()), std::to_string(review.getRating()), review.getComment(), review.getReviewDate().toString()}, '|'));
     }
     FileManager::writeLines(kReviewsPath, lines);
 }
 
-void RentalSystem::createBooking() {
-    if (currentUser == nullptr) {
+void RentalSystem::createBooking()
+{
+    if (currentUser == nullptr)
+    {
         std::cout << "[ERROR] Please login as a customer first.\n";
         return;
     }
@@ -617,18 +822,20 @@ void RentalSystem::createBooking() {
     viewVehicles();
     int vehicleId = utils::getInt("Enter vehicle ID: ");
 
-    auto vehicleIt = std::find_if(vehicles.begin(), vehicles.end(), [&](const Vehicle& vehicle) {
-        return vehicle.getId() == vehicleId;
-    });
-    if (vehicleIt == vehicles.end()) {
+    auto vehicleIt = std::find_if(vehicles.begin(), vehicles.end(), [&](const Vehicle &vehicle)
+                                  { return vehicle.getId() == vehicleId; });
+    if (vehicleIt == vehicles.end())
+    {
         std::cout << "[ERROR] Vehicle not found.\n";
         return;
     }
 
-    try {
+    try
+    {
         Date pickup = Date::parse(utils::getNonEmptyString("Pickup date (DD-MM-YYYY): "));
         Date returnDate = Date::parse(utils::getNonEmptyString("Return date (DD-MM-YYYY): "));
-        if (!isVehicleAvailable(vehicleId, pickup, returnDate)) {
+        if (!isVehicleAvailable(vehicleId, pickup, returnDate))
+        {
             std::cout << "[ERROR] Vehicle is not available for the selected dates.\n";
             return;
         }
@@ -636,7 +843,7 @@ void RentalSystem::createBooking() {
         std::string pickupLocation = utils::getNonEmptyString("Pickup location: ");
         std::string returnLocation = utils::getNonEmptyString("Return location: ");
         int rentalDays = Date::daysBetween(pickup, returnDate);
-    
+
         // double rentalPrice = rentalDays * vehicleIt->getPricePerDay();
         // double totalAmount = rentalPrice;
 
@@ -658,223 +865,242 @@ void RentalSystem::createBooking() {
         //         }
         //     }
         // }
-       double baseRentalPrice =
-    rentalDays * vehicleIt->getPricePerDay();
+        double baseRentalPrice =
+            rentalDays * vehicleIt->getPricePerDay();
 
-double discount = 0.0;
-std::string couponCode = "";
+        double discount = 0.0;
+        std::string couponCode = "";
 
-if (!coupons.empty()) {
+        if (!coupons.empty())
+        {
 
-    std::cout << "\n";
-    std::cout << "----------------------------------------\n";
-    std::cout << "COUPON\n";
-    std::cout << "----------------------------------------\n";
+            std::cout << "\n";
+            std::cout << "----------------------------------------\n";
+            std::cout << "COUPON\n";
+            std::cout << "----------------------------------------\n";
 
-    std::string enteredCode =
-        utils::getNonEmptyString(
-            "Coupon code (enter NONE to skip): "
-        );
+            std::string enteredCode =
+                utils::getNonEmptyString(
+                    "Coupon code (enter NONE to skip): ");
 
-    if (enteredCode != "NONE" &&
-        enteredCode != "none") {
+            if (enteredCode != "NONE" &&
+                enteredCode != "none")
+            {
 
-        bool couponFound = false;
+                bool couponFound = false;
 
-        Date today =
-            Date::parse(currentDateString());
+                Date today =
+                    Date::parse(currentDateString());
 
-        for (const auto& coupon : coupons) {
+                for (const auto &coupon : coupons)
+                {
 
-            if (coupon.getCode() == enteredCode) {
+                    if (coupon.getCode() == enteredCode)
+                    {
 
-                couponFound = true;
+                        couponFound = true;
 
-                if (!coupon.isValidFor(
-                        baseRentalPrice,
-                        today)) {
+                        if (!coupon.isValidFor(
+                                baseRentalPrice,
+                                today))
+                        {
+
+                            utils::printError(
+                                "Coupon is expired, inactive, "
+                                "usage limit reached, or minimum "
+                                "amount is not satisfied.");
+
+                            return;
+                        }
+
+                        discount =
+                            coupon.calculateDiscount(
+                                baseRentalPrice);
+
+                        if (discount <= 0.0)
+                        {
+
+                            utils::printError(
+                                "Coupon did not provide a discount.");
+
+                            return;
+                        }
+
+                        couponCode =
+                            coupon.getCode();
+
+                        break;
+                    }
+                }
+
+                if (!couponFound)
+                {
 
                     utils::printError(
-                        "Coupon is expired, inactive, "
-                        "usage limit reached, or minimum "
-                        "amount is not satisfied."
-                    );
+                        "Invalid coupon code.");
 
                     return;
                 }
-
-                discount =
-                    coupon.calculateDiscount(
-                        baseRentalPrice
-                    );
-
-                if (discount <= 0.0) {
-
-                    utils::printError(
-                        "Coupon did not provide a discount."
-                    );
-
-                    return;
-                }
-
-                couponCode =
-                    coupon.getCode();
-
-                break;
             }
         }
 
-        if (!couponFound) {
+        double finalRentalPrice =
+            baseRentalPrice - discount;
 
-            utils::printError(
-                "Invalid coupon code."
-            );
+        bookings.emplace_back(
+            nextBookingId++,
+            currentUser->getId(),
+            vehicleId,
+            pickup,
+            returnDate,
+            pickupLocation,
+            returnLocation,
+            rentalDays,
+            finalRentalPrice,
+            "BOOKED",
+            Date::parse(currentDateString()),
+            couponCode,
+            discount);
 
-            return;
+        auto vehicleIt = std::find_if(
+            vehicles.begin(),
+            vehicles.end(),
+            [&](const Vehicle &vehicle)
+            {
+                return vehicle.getId() == vehicleId;
+            });
+
+        if (vehicleIt != vehicles.end())
+        {
+            vehicleIt->setStatus("BOOKED");
+            saveVehicles();
         }
-    }
-}
 
-double finalRentalPrice =
-    baseRentalPrice - discount;
+        // Update coupon usage
+        if (!couponCode.empty())
+        {
+            for (auto &coupon : coupons)
+            {
+                if (coupon.getCode() == couponCode)
+                {
+                    coupon.incrementUsage();
+                    break;
+                }
+            }
 
-bookings.emplace_back(
-    nextBookingId++,
-    currentUser->getId(),
-    vehicleId,
-    pickup,
-    returnDate,
-    pickupLocation,
-    returnLocation,
-    rentalDays,
-    finalRentalPrice,
-    "BOOKED",
-    Date::parse(currentDateString()),
-    couponCode,
-    discount
-);
-
-auto vehicleIt = std::find_if(
-    vehicles.begin(),
-    vehicles.end(),
-    [&](const Vehicle& vehicle) {
-        return vehicle.getId() == vehicleId;
-    }
-);
-
-if (vehicleIt != vehicles.end()) {
-    vehicleIt->setStatus("BOOKED");
-    saveVehicles();
-}
-
-// Update coupon usage
-if (!couponCode.empty()) {
-    for (auto& coupon : coupons) {
-        if (coupon.getCode() == couponCode) {
-            coupon.incrementUsage();
-            break;
+            saveCoupons();
         }
-    }
 
-    saveCoupons();
-}
+        saveBookings();
+        if (!couponCode.empty())
+        {
 
-saveBookings();
-if (!couponCode.empty()) {
+            for (auto &coupon : coupons)
+            {
 
-    for (auto& coupon : coupons) {
+                if (coupon.getCode() == couponCode)
+                {
 
-        if (coupon.getCode() == couponCode) {
+                    coupon.incrementUsage();
+                    break;
+                }
+            }
 
-            coupon.incrementUsage();
-            break;
+            saveCoupons();
         }
-    }
+        saveBookings();
+        if (!couponCode.empty())
+        {
 
-    saveCoupons();
-}
-saveBookings();
-if (!couponCode.empty()) {
+            for (auto &coupon : coupons)
+            {
 
-    for (auto& coupon : coupons) {
+                if (coupon.getCode() == couponCode)
+                {
 
-        if (coupon.getCode() == couponCode) {
+                    coupon.incrementUsage();
+                    break;
+                }
+            }
 
-            coupon.incrementUsage();
-            break;
+            saveCoupons();
         }
+
+        saveBookings();
+
+        // ===== BOOKING SUCCESS MESSAGE =====
+
+        std::cout << "\n";
+        std::cout << "========================================\n";
+        std::cout << "        BOOKING CREATED SUCCESSFULLY\n";
+        std::cout << "========================================\n";
+
+        std::cout << "Base Rental   : Rs. "
+                  << utils::formatMoney(baseRentalPrice)
+                  << "\n";
+
+        if (!couponCode.empty())
+        {
+
+            std::cout << "Coupon        : "
+                      << couponCode
+                      << "\n";
+
+            std::cout << "Discount      : Rs. "
+                      << utils::formatMoney(discount)
+                      << "\n";
+        }
+
+        std::cout << "Final Rental  : Rs. "
+                  << utils::formatMoney(finalRentalPrice)
+                  << "\n";
+
+        std::cout << "========================================\n";
     }
-
-    saveCoupons();
-}
-
-saveBookings();
-
-// ===== BOOKING SUCCESS MESSAGE =====
-
-std::cout << "\n";
-std::cout << "========================================\n";
-std::cout << "        BOOKING CREATED SUCCESSFULLY\n";
-std::cout << "========================================\n";
-
-std::cout << "Base Rental   : Rs. "
-          << utils::formatMoney(baseRentalPrice)
-          << "\n";
-
-if (!couponCode.empty()) {
-
-    std::cout << "Coupon        : "
-              << couponCode
-              << "\n";
-
-    std::cout << "Discount      : Rs. "
-              << utils::formatMoney(discount)
-              << "\n";
-}
-
-std::cout << "Final Rental  : Rs. "
-          << utils::formatMoney(finalRentalPrice)
-          << "\n";
-
-std::cout << "========================================\n";
-
-    } catch (const std::invalid_argument& e) {
+    catch (const std::invalid_argument &e)
+    {
         std::cout << "[ERROR] Invalid date format.\n";
     }
 }
-void RentalSystem::viewBookings() {
-    if (bookings.empty()) {
+void RentalSystem::viewBookings()
+{
+    if (bookings.empty())
+    {
         std::cout << "No bookings found.\n";
         return;
     }
 
-    for (const auto& booking : bookings) {
-        if (currentUser != nullptr && booking.getCustomerId() != currentUser->getId()) {
+    for (const auto &booking : bookings)
+    {
+        if (currentUser != nullptr && booking.getCustomerId() != currentUser->getId())
+        {
             continue;
         }
         std::cout << "Booking ID: " << booking.getId() << " | Vehicle ID: " << booking.getVehicleId() << " | Status: " << booking.getStatus() << " | Dates: " << booking.getPickupDate().toString() << " to " << booking.getReturnDate().toString() << "\n";
     }
 }
 
-void RentalSystem::cancelBooking() {
+void RentalSystem::cancelBooking()
+{
     int bookingId = utils::getInt("Booking ID: ");
-    auto it = std::find_if(bookings.begin(), bookings.end(), [&](const Booking& booking) {
-        return booking.getId() == bookingId;
-    });
-    if (it == bookings.end()) {
+    auto it = std::find_if(bookings.begin(), bookings.end(), [&](const Booking &booking)
+                           { return booking.getId() == bookingId; });
+    if (it == bookings.end())
+    {
         std::cout << "[ERROR] Booking not found.\n";
         return;
     }
-    if (currentUser != nullptr && it->getCustomerId() != currentUser->getId()) {
+    if (currentUser != nullptr && it->getCustomerId() != currentUser->getId())
+    {
         std::cout << "[ERROR] You can only cancel your own bookings.\n";
         return;
     }
     it->setStatus("CANCELLED");
 
-    auto vehicleIt = std::find_if(vehicles.begin(), vehicles.end(), [&](const Vehicle& vehicle) {
-        return vehicle.getId() == it->getVehicleId();
-    });
-    if (vehicleIt != vehicles.end()) {
+    auto vehicleIt = std::find_if(vehicles.begin(), vehicles.end(), [&](const Vehicle &vehicle)
+                                  { return vehicle.getId() == it->getVehicleId(); });
+    if (vehicleIt != vehicles.end())
+    {
         vehicleIt->setStatus("AVAILABLE");
         saveVehicles();
     }
@@ -884,16 +1110,18 @@ void RentalSystem::cancelBooking() {
     std::cout << "[SUCCESS] Booking cancelled.\n";
 }
 
-void RentalSystem::processPickup() {
+void RentalSystem::processPickup()
+{
     int bookingId = utils::getInt("Booking ID: ");
-    auto it = std::find_if(bookings.begin(), bookings.end(), [&](const Booking& booking) {
-        return booking.getId() == bookingId;
-    });
-    if (it == bookings.end()) {
+    auto it = std::find_if(bookings.begin(), bookings.end(), [&](const Booking &booking)
+                           { return booking.getId() == bookingId; });
+    if (it == bookings.end())
+    {
         std::cout << "[ERROR] Booking not found.\n";
         return;
     }
-    if (it->getStatus() != "BOOKED" && it->getStatus() != "CONFIRMED") {
+    if (it->getStatus() != "BOOKED" && it->getStatus() != "CONFIRMED")
+    {
         std::cout << "[ERROR] Booking is not ready for pickup.\n";
         return;
     }
@@ -906,10 +1134,10 @@ void RentalSystem::processPickup() {
     it->setFuelAtPickup(fuel);
     it->setStatus("PICKED_UP");
 
-    auto vehicleIt = std::find_if(vehicles.begin(), vehicles.end(), [&](const Vehicle& vehicle) {
-        return vehicle.getId() == it->getVehicleId();
-    });
-    if (vehicleIt != vehicles.end()) {
+    auto vehicleIt = std::find_if(vehicles.begin(), vehicles.end(), [&](const Vehicle &vehicle)
+                                  { return vehicle.getId() == it->getVehicleId(); });
+    if (vehicleIt != vehicles.end())
+    {
         vehicleIt->setStatus("RENTED");
         saveVehicles();
     }
@@ -917,38 +1145,44 @@ void RentalSystem::processPickup() {
     std::cout << "[SUCCESS] Pickup processed.\n";
 }
 
-void RentalSystem::processReturn() {
+void RentalSystem::processReturn()
+{
     int bookingId = utils::getInt("Booking ID: ");
-    auto it = std::find_if(bookings.begin(), bookings.end(), [&](const Booking& booking) {
-        return booking.getId() == bookingId;
-    });
-    if (it == bookings.end()) {
+    auto it = std::find_if(bookings.begin(), bookings.end(), [&](const Booking &booking)
+                           { return booking.getId() == bookingId; });
+    if (it == bookings.end())
+    {
         std::cout << "[ERROR] Booking not found.\n";
         return;
     }
-    if (it->getStatus() != "PICKED_UP") {
+    if (it->getStatus() != "PICKED_UP")
+    {
         std::cout << "[ERROR] Booking is not currently rented.\n";
         return;
     }
 
-    try {
+    try
+    {
         Date actualReturn = Date::parse(utils::getNonEmptyString("Actual return date (DD-MM-YYYY): "));
         std::string condition = utils::getNonEmptyString("Vehicle condition: ");
         int odometer = utils::getInt("Odometer reading: ");
         int fuel = utils::getInt("Fuel level (%): ");
         std::string damageInfo = utils::getNonEmptyString("Damage information (none if none): ");
         double damageCharge = 0.0;
-        if (damageInfo != "none") {
+        if (damageInfo != "none")
+        {
             damageCharge = utils::getDouble("Damage charge: ");
         }
 
         int lateDays = 0;
-        if (actualReturn > it->getReturnDate()) {
+        if (actualReturn > it->getReturnDate())
+        {
             lateDays = std::max(0, Date::daysBetween(it->getReturnDate(), actualReturn) - 1);
         }
         double lateFee = lateDays * 1000.0;
         double fuelCharge = 0.0;
-        if (fuel < it->getFuelAtPickup()) {
+        if (fuel < it->getFuelAtPickup())
+        {
             fuelCharge = (it->getFuelAtPickup() - fuel) * 100.0;
         }
 
@@ -962,31 +1196,38 @@ void RentalSystem::processReturn() {
         it->setDamageCharge(damageCharge);
         it->setStatus("COMPLETED");
 
-        auto customerIt = std::find_if(users.begin(), users.end(), [&](const User& user) {
-            return user.getId() == it->getCustomerId();
-        });
-        if (customerIt != users.end()) {
+        auto customerIt = std::find_if(users.begin(), users.end(), [&](const User &user)
+                                       { return user.getId() == it->getCustomerId(); });
+        if (customerIt != users.end())
+        {
             customerIt->incrementRentals();
             customerIt->incrementCompletedRentals();
             customerIt->addToTotalSpent(it->getRentalPrice() + lateFee + fuelCharge + damageCharge);
             const int earnedPoints = static_cast<int>((it->getRentalPrice() + lateFee + fuelCharge + damageCharge) / 100.0);
             customerIt->addLoyaltyPoints(earnedPoints);
             int newPoints = customerIt->getLoyaltyPoints();
-            if (newPoints >= 2500) {
+            if (newPoints >= 2500)
+            {
                 customerIt->setMembershipLevel("PLATINUM");
-            } else if (newPoints >= 1000) {
+            }
+            else if (newPoints >= 1000)
+            {
                 customerIt->setMembershipLevel("GOLD");
-            } else if (newPoints >= 500) {
+            }
+            else if (newPoints >= 500)
+            {
                 customerIt->setMembershipLevel("SILVER");
-            } else {
+            }
+            else
+            {
                 customerIt->setMembershipLevel("BRONZE");
             }
         }
 
-        auto vehicleIt = std::find_if(vehicles.begin(), vehicles.end(), [&](const Vehicle& vehicle) {
-            return vehicle.getId() == it->getVehicleId();
-        });
-        if (vehicleIt != vehicles.end()) {
+        auto vehicleIt = std::find_if(vehicles.begin(), vehicles.end(), [&](const Vehicle &vehicle)
+                                      { return vehicle.getId() == it->getVehicleId(); });
+        if (vehicleIt != vehicles.end())
+        {
             vehicleIt->setStatus("AVAILABLE");
             saveVehicles();
         }
@@ -994,7 +1235,9 @@ void RentalSystem::processReturn() {
         saveBookings();
         addNotification("Vehicle returned for booking #" + std::to_string(bookingId) + ".", "BOOKING");
         std::cout << "[SUCCESS] Return processed.\n";
-    } catch (const std::exception& ex) {
+    }
+    catch (const std::exception &ex)
+    {
         std::cout << "[ERROR] " << ex.what() << "\n";
     }
 }
@@ -1034,8 +1277,10 @@ void RentalSystem::processReturn() {
 //         addNotification("Payment received for booking #" + std::to_string(bookingId) + ".", "PAYMENT");
 //     }
 // }
-void RentalSystem::makePayment() {
-    if (currentUser == nullptr) {
+void RentalSystem::makePayment()
+{
+    if (currentUser == nullptr)
+    {
         utils::printError("Please login as a customer first.");
         return;
     }
@@ -1045,21 +1290,22 @@ void RentalSystem::makePayment() {
     auto bookingIt = std::find_if(
         bookings.begin(),
         bookings.end(),
-        [&](const Booking& booking) {
+        [&](const Booking &booking)
+        {
             return booking.getId() == bookingId &&
                    booking.getCustomerId() == currentUser->getId();
-        }
-    );
+        });
 
-    if (bookingIt == bookings.end()) {
+    if (bookingIt == bookings.end())
+    {
         utils::printError("Booking not found or does not belong to you.");
         return;
     }
 
-    if (bookingIt->getStatus() != "COMPLETED") {
+    if (bookingIt->getStatus() != "COMPLETED")
+    {
         utils::printError(
-            "Payment can only be made after the vehicle has been returned."
-        );
+            "Payment can only be made after the vehicle has been returned.");
         return;
     }
 
@@ -1067,13 +1313,14 @@ void RentalSystem::makePayment() {
     auto existingPayment = std::find_if(
         payments.begin(),
         payments.end(),
-        [&](const Payment& payment) {
+        [&](const Payment &payment)
+        {
             return payment.getBookingId() == bookingId &&
                    payment.getStatus() == "PAID";
-        }
-    );
+        });
 
-    if (existingPayment != payments.end()) {
+    if (existingPayment != payments.end())
+    {
         utils::printWarning("This booking has already been paid.");
         return;
     }
@@ -1091,23 +1338,23 @@ void RentalSystem::makePayment() {
 
     std::cout << "Rental Cost   : Rs. "
               << utils::formatMoney(
-                     bookingIt->getRentalPrice()
-                 ) << "\n";
+                     bookingIt->getRentalPrice())
+              << "\n";
 
     std::cout << "Late Fee      : Rs. "
               << utils::formatMoney(
-                     bookingIt->getLateFee()
-                 ) << "\n";
+                     bookingIt->getLateFee())
+              << "\n";
 
     std::cout << "Fuel Charge   : Rs. "
               << utils::formatMoney(
-                     bookingIt->getFuelCharge()
-                 ) << "\n";
+                     bookingIt->getFuelCharge())
+              << "\n";
 
     std::cout << "Damage Charge : Rs. "
               << utils::formatMoney(
-                     bookingIt->getDamageCharge()
-                 ) << "\n";
+                     bookingIt->getDamageCharge())
+              << "\n";
 
     std::cout << "----------------------------------------\n";
 
@@ -1117,16 +1364,15 @@ void RentalSystem::makePayment() {
 
     std::string method =
         utils::getNonEmptyString(
-            "Payment method (Cash/eSewa/Khalti/Card): "
-        );
+            "Payment method (Cash/eSewa/Khalti/Card): ");
 
     double amount =
         utils::getDouble("Enter payment amount: ");
 
-    if (amount < totalAmount) {
+    if (amount < totalAmount)
+    {
         utils::printError(
-            "Payment amount is less than the total amount."
-        );
+            "Payment amount is less than the total amount.");
         return;
     }
 
@@ -1145,8 +1391,7 @@ void RentalSystem::makePayment() {
         method,
         currentDateString(),
         transactionId,
-        "PAID"
-    );
+        "PAID");
 
     // Add payment to memory
     payments.push_back(payment);
@@ -1155,8 +1400,7 @@ void RentalSystem::makePayment() {
     savePayments();
 
     utils::printSuccess(
-        "Payment completed successfully."
-    );
+        "Payment completed successfully.");
 
     std::cout << "Transaction ID: "
               << transactionId << "\n";
@@ -1165,18 +1409,19 @@ void RentalSystem::makePayment() {
     generateInvoice(*bookingIt, payment);
 }
 void RentalSystem::generateInvoice(
-    const Booking& booking,
-    const Payment& payment
-) {
+    const Booking &booking,
+    const Payment &payment)
+{
     auto vehicleIt = std::find_if(
         vehicles.begin(),
         vehicles.end(),
-        [&](const Vehicle& vehicle) {
+        [&](const Vehicle &vehicle)
+        {
             return vehicle.getId() == booking.getVehicleId();
-        }
-    );
+        });
 
-    if (vehicleIt == vehicles.end()) {
+    if (vehicleIt == vehicles.end())
+    {
         utils::printError("Vehicle information not found.");
         return;
     }
@@ -1184,12 +1429,13 @@ void RentalSystem::generateInvoice(
     auto customerIt = std::find_if(
         users.begin(),
         users.end(),
-        [&](const User& user) {
+        [&](const User &user)
+        {
             return user.getId() == booking.getCustomerId();
-        }
-    );
+        });
 
-    if (customerIt == users.end()) {
+    if (customerIt == users.end())
+    {
         utils::printError("Customer information not found.");
         return;
     }
@@ -1198,45 +1444,48 @@ void RentalSystem::generateInvoice(
         booking,
         *vehicleIt,
         *customerIt,
-        payment
-    );
+        payment);
 
     utils::printHeader("INVOICE");
 
     invoice.display();
 
     utils::printSuccess(
-        "Invoice generated successfully."
-    );
+        "Invoice generated successfully.");
 }
-void RentalSystem::viewInvoice() {
-    if (currentUser == nullptr) {
+void RentalSystem::viewInvoice()
+{
+    if (currentUser == nullptr)
+    {
         utils::printError("Please login as a customer first.");
         return;
     }
 
-    std::vector<const Payment*> customerPayments;
+    std::vector<const Payment *> customerPayments;
 
-    for (const auto& payment : payments) {
+    for (const auto &payment : payments)
+    {
         if (payment.getCustomerId() == currentUser->getId() &&
-            payment.getStatus() == "PAID") {
+            payment.getStatus() == "PAID")
+        {
 
             customerPayments.push_back(&payment);
         }
     }
 
-    if (customerPayments.empty()) {
+    if (customerPayments.empty())
+    {
         utils::printInfo(
-            "You do not have any paid invoices yet."
-        );
+            "You do not have any paid invoices yet.");
         return;
     }
 
     utils::printHeader("MY INVOICES");
 
-    for (size_t i = 0; i < customerPayments.size(); ++i) {
+    for (size_t i = 0; i < customerPayments.size(); ++i)
+    {
 
-        const Payment* payment =
+        const Payment *payment =
             customerPayments[i];
 
         std::cout
@@ -1253,49 +1502,51 @@ void RentalSystem::viewInvoice() {
     int choice =
         utils::getInt("Select invoice (0 to cancel): ");
 
-    if (choice == 0) {
+    if (choice == 0)
+    {
         return;
     }
 
     if (choice < 1 ||
-        choice > static_cast<int>(customerPayments.size())) {
+        choice > static_cast<int>(customerPayments.size()))
+    {
 
         utils::printError("Invalid invoice selection.");
         return;
     }
 
-    const Payment* selectedPayment =
+    const Payment *selectedPayment =
         customerPayments[choice - 1];
 
     auto bookingIt = std::find_if(
         bookings.begin(),
         bookings.end(),
-        [&](const Booking& booking) {
+        [&](const Booking &booking)
+        {
             return booking.getId() ==
                        selectedPayment->getBookingId() &&
                    booking.getCustomerId() ==
                        currentUser->getId();
-        }
-    );
+        });
 
-    if (bookingIt == bookings.end()) {
+    if (bookingIt == bookings.end())
+    {
         utils::printError("Associated booking not found.");
         return;
     }
 
     generateInvoice(
         *bookingIt,
-        *selectedPayment
-    );
+        *selectedPayment);
 }
 
-
-void RentalSystem::addMaintenance() {
+void RentalSystem::addMaintenance()
+{
     int vehicleId = utils::getInt("Vehicle ID: ");
-    auto vehicleIt = std::find_if(vehicles.begin(), vehicles.end(), [&](const Vehicle& vehicle) {
-        return vehicle.getId() == vehicleId;
-    });
-    if (vehicleIt == vehicles.end()) {
+    auto vehicleIt = std::find_if(vehicles.begin(), vehicles.end(), [&](const Vehicle &vehicle)
+                                  { return vehicle.getId() == vehicleId; });
+    if (vehicleIt == vehicles.end())
+    {
         std::cout << "[ERROR] Vehicle not found.\n";
         return;
     }
@@ -1305,52 +1556,61 @@ void RentalSystem::addMaintenance() {
     std::string description = utils::getNonEmptyString("Description: ");
     std::string nextServiceDateInput = utils::getNonEmptyString("Next service date (DD-MM-YYYY): ");
 
-    try {
+    try
+    {
         Date nextServiceDate = Date::parse(nextServiceDateInput);
         maintenanceRecords.emplace_back(nextMaintenanceId++, vehicleId, serviceType, Date::parse(currentDateString()), cost, description, nextServiceDate);
         vehicleIt->setStatus("MAINTENANCE");
         saveMaintenance();
         saveVehicles();
         std::cout << "[SUCCESS] Maintenance record added.\n";
-    } catch (const std::exception& ex) {
+    }
+    catch (const std::exception &ex)
+    {
         std::cout << "[ERROR] " << ex.what() << "\n";
     }
 }
 
-void RentalSystem::viewMaintenance() {
-    if (maintenanceRecords.empty()) {
+void RentalSystem::viewMaintenance()
+{
+    if (maintenanceRecords.empty())
+    {
         std::cout << "No maintenance records found.\n";
         return;
     }
-    for (const auto& maintenance : maintenanceRecords) {
+    for (const auto &maintenance : maintenanceRecords)
+    {
         std::cout << "Maintenance ID: " << maintenance.getId() << " | Vehicle ID: " << maintenance.getVehicleId() << " | Type: " << maintenance.getServiceType() << "\n";
     }
 }
 
-void RentalSystem::addReview() {
-    if (currentUser == nullptr) {
+void RentalSystem::addReview()
+{
+    if (currentUser == nullptr)
+    {
         std::cout << "[ERROR] Please login as a customer first.\n";
         return;
     }
 
     int vehicleId = utils::getInt("Vehicle ID: ");
     int rating = utils::getInt("Rating (1-5): ");
-    if (rating < 1 || rating > 5) {
+    if (rating < 1 || rating > 5)
+    {
         std::cout << "[ERROR] Rating must be between 1 and 5.\n";
         return;
     }
     std::string comment = utils::getNonEmptyString("Comment: ");
     reviews.emplace_back(nextReviewId++, currentUser->getId(), vehicleId, rating, comment, Date::parse(currentDateString()));
-    auto vehicleIt = std::find_if(vehicles.begin(), vehicles.end(), [&](const Vehicle& vehicle) {
-        return vehicle.getId() == vehicleId;
-    });
-    if (vehicleIt != vehicles.end()) {
+    auto vehicleIt = std::find_if(vehicles.begin(), vehicles.end(), [&](const Vehicle &vehicle)
+                                  { return vehicle.getId() == vehicleId; });
+    if (vehicleIt != vehicles.end())
+    {
         vehicleIt->addRating(rating);
     }
-    auto userIt = std::find_if(users.begin(), users.end(), [&](const User& user) {
-        return user.getId() == currentUser->getId();
-    });
-    if (userIt != users.end()) {
+    auto userIt = std::find_if(users.begin(), users.end(), [&](const User &user)
+                               { return user.getId() == currentUser->getId(); });
+    if (userIt != users.end())
+    {
         userIt->setAverageRating((userIt->getAverageRating() + rating) / 2.0);
     }
     saveReviews();
@@ -1359,7 +1619,8 @@ void RentalSystem::addReview() {
     std::cout << "[SUCCESS] Review added.\n";
 }
 
-void RentalSystem::showReports() {
+void RentalSystem::showReports()
+{
     Report report(vehicles, users, bookings);
     report.showDashboardSummary();
     report.showRevenueAnalytics();
@@ -1369,79 +1630,106 @@ void RentalSystem::showReports() {
     report.showFinancialSummary();
 }
 
-void RentalSystem::loadCoupons() {
+void RentalSystem::loadCoupons()
+{
     coupons.clear();
     auto lines = FileManager::readLines(kCouponsPath);
-    for (const std::string& line : lines) {
+    for (const std::string &line : lines)
+    {
         auto parts = FileManager::split(line, '|');
-        if (parts.size() >= 9) {
-            try {
+        if (parts.size() >= 9)
+        {
+            try
+            {
                 coupons.emplace_back(std::stoi(parts[0]), parts[1], parts[2], std::stod(parts[3]), std::stod(parts[4]), Date::parse(parts[5]), std::stoi(parts[6]), std::stoi(parts[7]), parts[8] == "1");
-            } catch (...) {
+            }
+            catch (...)
+            {
             }
         }
     }
 }
 
-void RentalSystem::saveCoupons() {
+void RentalSystem::saveCoupons()
+{
     std::vector<std::string> lines;
-    for (const auto& coupon : coupons) {
+    for (const auto &coupon : coupons)
+    {
         lines.push_back(FileManager::join({std::to_string(coupon.getId()), coupon.getCode(), coupon.getDiscountType(), std::to_string(coupon.getDiscountValue()), std::to_string(coupon.getMinAmount()), coupon.getExpiryDate().toString(), std::to_string(coupon.getMaxUsage()), std::to_string(coupon.getCurrentUsage()), coupon.isActive() ? "1" : "0"}, '|'));
     }
     FileManager::writeLines(kCouponsPath, lines);
 }
 
-void RentalSystem::loadNotifications() {
+void RentalSystem::loadNotifications()
+{
     notifications.clear();
     auto lines = FileManager::readLines(kNotificationsPath);
-    for (const std::string& line : lines) {
+    for (const std::string &line : lines)
+    {
         auto parts = FileManager::split(line, '|');
-        if (parts.size() >= 4) {
-            try {
+        if (parts.size() >= 4)
+        {
+            try
+            {
                 notifications.emplace_back(std::stoi(parts[0]), parts[1], parts[2], parts[3] == "1");
-            } catch (...) {
+            }
+            catch (...)
+            {
             }
         }
     }
 }
 
-void RentalSystem::saveNotifications() {
+void RentalSystem::saveNotifications()
+{
     std::vector<std::string> lines;
-    for (const auto& notification : notifications) {
+    for (const auto &notification : notifications)
+    {
         lines.push_back(FileManager::join({std::to_string(notification.getId()), notification.getMessage(), notification.getType(), notification.isRead() ? "1" : "0"}, '|'));
     }
     FileManager::writeLines(kNotificationsPath, lines);
 }
 
-void RentalSystem::loadFavorites() {
+void RentalSystem::loadFavorites()
+{
     favorites.clear();
     auto lines = FileManager::readLines(kFavoritesPath);
-    for (const std::string& line : lines) {
+    for (const std::string &line : lines)
+    {
         auto parts = FileManager::split(line, '|');
-        if (parts.size() >= 2) {
-            try {
+        if (parts.size() >= 2)
+        {
+            try
+            {
                 favorites.emplace_back(std::stoi(parts[0]), std::stoi(parts[1]));
-            } catch (...) {
+            }
+            catch (...)
+            {
             }
         }
     }
 }
 
-void RentalSystem::saveFavorites() {
+void RentalSystem::saveFavorites()
+{
     std::vector<std::string> lines;
-    for (const auto& favorite : favorites) {
+    for (const auto &favorite : favorites)
+    {
         lines.push_back(FileManager::join({std::to_string(favorite.getCustomerId()), std::to_string(favorite.getVehicleId())}, '|'));
     }
     FileManager::writeLines(kFavoritesPath, lines);
 }
 
-void RentalSystem::addFavorite() {
-    if (currentUser == nullptr) {
+void RentalSystem::addFavorite()
+{
+    if (currentUser == nullptr)
+    {
         utils::printError("Please login first.");
         return;
     }
     int vehicleId = utils::getInt("Vehicle ID: ");
-    if (isFavorite(vehicleId)) {
+    if (isFavorite(vehicleId))
+    {
         utils::printWarning("Vehicle already in favorites.");
         return;
     }
@@ -1450,76 +1738,95 @@ void RentalSystem::addFavorite() {
     utils::printSuccess("Vehicle added to favorites.");
 }
 
-void RentalSystem::removeFavorite() {
-    if (currentUser == nullptr) {
+void RentalSystem::removeFavorite()
+{
+    if (currentUser == nullptr)
+    {
         return;
     }
     int vehicleId = utils::getInt("Vehicle ID: ");
-    auto it = std::remove_if(favorites.begin(), favorites.end(), [&](const Favorite& favorite) {
-        return favorite.getCustomerId() == currentUser->getId() && favorite.getVehicleId() == vehicleId;
-    });
-    if (it != favorites.end()) {
+    auto it = std::remove_if(favorites.begin(), favorites.end(), [&](const Favorite &favorite)
+                             { return favorite.getCustomerId() == currentUser->getId() && favorite.getVehicleId() == vehicleId; });
+    if (it != favorites.end())
+    {
         favorites.erase(it, favorites.end());
         saveFavorites();
         utils::printSuccess("Vehicle removed from favorites.");
-    } else {
+    }
+    else
+    {
         utils::printWarning("Favorite not found.");
     }
 }
 
-void RentalSystem::viewFavorites() {
-    if (currentUser == nullptr) {
+void RentalSystem::viewFavorites()
+{
+    if (currentUser == nullptr)
+    {
         return;
     }
     utils::printHeader("FAVORITE VEHICLES");
     bool found = false;
-    for (const auto& favorite : favorites) {
-        if (favorite.getCustomerId() != currentUser->getId()) {
+    for (const auto &favorite : favorites)
+    {
+        if (favorite.getCustomerId() != currentUser->getId())
+        {
             continue;
         }
         found = true;
-        const auto vehicleIt = std::find_if(vehicles.begin(), vehicles.end(), [&](const Vehicle& vehicle) {
-            return vehicle.getId() == favorite.getVehicleId();
-        });
-        if (vehicleIt != vehicles.end()) {
+        const auto vehicleIt = std::find_if(vehicles.begin(), vehicles.end(), [&](const Vehicle &vehicle)
+                                            { return vehicle.getId() == favorite.getVehicleId(); });
+        if (vehicleIt != vehicles.end())
+        {
             std::cout << vehicleIt->getBrand() << " " << vehicleIt->getModel() << "\n";
         }
     }
-    if (!found) {
+    if (!found)
+    {
         utils::printInfo("You have no favorite vehicles yet.");
     }
 }
 
-void RentalSystem::showRecommendations() {
-    if (currentUser == nullptr) {
+void RentalSystem::showRecommendations()
+{
+    if (currentUser == nullptr)
+    {
         return;
     }
     utils::printHeader("RECOMMENDED FOR YOU");
     utils::printInfo("Rule-based recommendations based on price, type, fuel, transmission, and availability.");
     std::vector<std::pair<int, int>> scored;
-    for (const auto& vehicle : vehicles) {
-        if (vehicle.getStatus() != "AVAILABLE") {
+    for (const auto &vehicle : vehicles)
+    {
+        if (vehicle.getStatus() != "AVAILABLE")
+        {
             continue;
         }
         int score = 0;
         score += vehicle.getType() == "Car" ? 2 : 0;
-        if (vehicle.getFuelType() == "Petrol") score += 2;
-        if (vehicle.getTransmission() == "Automatic") score += 1;
-        if (vehicle.getSeatingCapacity() >= 4) score += 1;
-        if (vehicle.getPricePerDay() <= 3500) score += 2;
-        if (vehicle.getAverageRating() >= 4.0) score += 2;
+        if (vehicle.getFuelType() == "Petrol")
+            score += 2;
+        if (vehicle.getTransmission() == "Automatic")
+            score += 1;
+        if (vehicle.getSeatingCapacity() >= 4)
+            score += 1;
+        if (vehicle.getPricePerDay() <= 3500)
+            score += 2;
+        if (vehicle.getAverageRating() >= 4.0)
+            score += 2;
         scored.push_back({vehicle.getId(), score});
     }
-    std::sort(scored.begin(), scored.end(), [](const std::pair<int, int>& left, const std::pair<int, int>& right) {
-        return left.second > right.second;
-    });
+    std::sort(scored.begin(), scored.end(), [](const std::pair<int, int> &left, const std::pair<int, int> &right)
+              { return left.second > right.second; });
     int count = 0;
-    for (const auto& entry : scored) {
-        if (count >= 3) break;
-        const auto vehicleIt = std::find_if(vehicles.begin(), vehicles.end(), [&](const Vehicle& vehicle) {
-            return vehicle.getId() == entry.first;
-        });
-        if (vehicleIt != vehicles.end()) {
+    for (const auto &entry : scored)
+    {
+        if (count >= 3)
+            break;
+        const auto vehicleIt = std::find_if(vehicles.begin(), vehicles.end(), [&](const Vehicle &vehicle)
+                                            { return vehicle.getId() == entry.first; });
+        if (vehicleIt != vehicles.end())
+        {
             std::cout << (count + 1) << ". " << vehicleIt->getBrand() << " " << vehicleIt->getModel()
                       << " | Score: " << entry.second << " | Rs. " << utils::formatMoney(vehicleIt->getPricePerDay()) << "\n";
         }
@@ -1527,16 +1834,20 @@ void RentalSystem::showRecommendations() {
     }
 }
 
-bool RentalSystem::isFavorite(int vehicleId) const {
-    for (const auto& favorite : favorites) {
-        if (favorite.getCustomerId() == currentUser->getId() && favorite.getVehicleId() == vehicleId) {
+bool RentalSystem::isFavorite(int vehicleId) const
+{
+    for (const auto &favorite : favorites)
+    {
+        if (favorite.getCustomerId() == currentUser->getId() && favorite.getVehicleId() == vehicleId)
+        {
             return true;
         }
     }
     return false;
 }
 
-void RentalSystem::addCoupon() {
+void RentalSystem::addCoupon()
+{
     std::string code = utils::getNonEmptyString("Coupon code: ");
     std::string discountType = utils::getNonEmptyString("Discount type (PERCENT/FIXED): ");
     double discountValue = utils::getDouble("Discount value: ");
@@ -1548,59 +1859,72 @@ void RentalSystem::addCoupon() {
     utils::printSuccess("Coupon added.");
 }
 
-void RentalSystem::viewCoupons() {
-    if (coupons.empty()) {
+void RentalSystem::viewCoupons()
+{
+    if (coupons.empty())
+    {
         utils::printWarning("No coupons found.");
         return;
     }
     utils::printHeader("COUPONS");
-    for (const auto& coupon : coupons) {
+    for (const auto &coupon : coupons)
+    {
         std::cout << coupon.getCode() << " | " << coupon.getDiscountType() << " " << coupon.getDiscountValue() << " | Min: " << coupon.getMinAmount() << " | Expiry: " << coupon.getExpiryDate().toString() << " | Usage: " << coupon.getCurrentUsage() << "/" << coupon.getMaxUsage() << "\n";
     }
 }
 
-void RentalSystem::manageCoupons() {
-    while (true) {
+void RentalSystem::manageCoupons()
+{
+    while (true)
+    {
         utils::printHeader("COUPON MANAGEMENT");
         std::cout << "[1] View Coupons\n";
         std::cout << "[2] Add Coupon\n";
         std::cout << "[3] Back\n";
         int choice = utils::getInt("Enter choice: ");
-        switch (choice) {
-            case 1:
-                viewCoupons();
-                break;
-            case 2:
-                addCoupon();
-                break;
-            case 3:
-                return;
-            default:
-                utils::printError("Invalid choice.");
+        switch (choice)
+        {
+        case 1:
+            viewCoupons();
+            break;
+        case 2:
+            addCoupon();
+            break;
+        case 3:
+            return;
+        default:
+            utils::printError("Invalid choice.");
         }
         utils::pauseScreen();
     }
 }
 
-void RentalSystem::viewNotifications() {
-    if (notifications.empty()) {
+void RentalSystem::viewNotifications()
+{
+    if (notifications.empty())
+    {
         utils::printInfo("No notifications yet.");
         return;
     }
     utils::printHeader("NOTIFICATIONS");
-    for (const auto& notification : notifications) {
+    for (const auto &notification : notifications)
+    {
         std::cout << (notification.isRead() ? "[READ]" : "[NEW]") << " " << notification.getMessage() << "\n";
     }
 }
 
-void RentalSystem::markNotificationRead() {
-    if (notifications.empty()) {
+void RentalSystem::markNotificationRead()
+{
+    if (notifications.empty())
+    {
         return;
     }
     viewNotifications();
     int id = utils::getInt("Enter notification ID to mark as read: ");
-    for (auto& notification : notifications) {
-        if (notification.getId() == id) {
+    for (auto &notification : notifications)
+    {
+        if (notification.getId() == id)
+        {
             notification.markRead();
             saveNotifications();
             utils::printSuccess("Notification marked as read.");
@@ -1610,146 +1934,168 @@ void RentalSystem::markNotificationRead() {
     utils::printError("Notification not found.");
 }
 
-void RentalSystem::addNotification(const std::string& message, const std::string& type) {
+void RentalSystem::addNotification(const std::string &message, const std::string &type)
+{
     notifications.emplace_back(static_cast<int>(notifications.size()) + 1, message, type, false);
     saveNotifications();
 }
 
-void RentalSystem::showCouponMenu() {
-    while (true) {
+void RentalSystem::showCouponMenu()
+{
+    while (true)
+    {
         utils::printHeader("COUPON CENTER");
         std::cout << "[1] View Coupons\n";
         std::cout << "[2] Back\n";
         int choice = utils::getInt("Enter choice: ");
-        switch (choice) {
-            case 1:
-                viewCoupons();
-                break;
-            case 2:
-                return;
-            default:
-                utils::printError("Invalid choice.");
+        switch (choice)
+        {
+        case 1:
+            viewCoupons();
+            break;
+        case 2:
+            return;
+        default:
+            utils::printError("Invalid choice.");
         }
         utils::pauseScreen();
     }
 }
 
-void RentalSystem::manageFavorites() {
-    if (currentUser == nullptr) {
+void RentalSystem::manageFavorites()
+{
+    if (currentUser == nullptr)
+    {
         utils::printError("Please login first.");
         return;
     }
 
-    while (true) {
+    while (true)
+    {
         utils::printHeader("FAVORITE VEHICLES");
         std::cout << "[1] Add Favorite\n";
         std::cout << "[2] Remove Favorite\n";
         std::cout << "[3] View Favorites\n";
         std::cout << "[4] Back\n";
         int choice = utils::getInt("Enter choice: ");
-        switch (choice) {
-            case 1:
-                addFavorite();
-                break;
-            case 2:
-                removeFavorite();
-                break;
-            case 3:
-                viewFavorites();
-                break;
-            case 4:
-                return;
-            default:
-                utils::printError("Invalid choice.");
+        switch (choice)
+        {
+        case 1:
+            addFavorite();
+            break;
+        case 2:
+            removeFavorite();
+            break;
+        case 3:
+            viewFavorites();
+            break;
+        case 4:
+            return;
+        default:
+            utils::printError("Invalid choice.");
         }
-        if (choice != 4) {
+        if (choice != 4)
+        {
             utils::pauseScreen();
         }
     }
 }
 
-void RentalSystem::manageNotifications() {
-    while (true) {
+void RentalSystem::manageNotifications()
+{
+    while (true)
+    {
         utils::printHeader("NOTIFICATIONS");
         std::cout << "[1] View Notifications\n";
         std::cout << "[2] Mark Notification as Read\n";
         std::cout << "[3] Back\n";
         int choice = utils::getInt("Enter choice: ");
-        switch (choice) {
-            case 1:
-                viewNotifications();
-                break;
-            case 2:
-                markNotificationRead();
-                break;
-            case 3:
-                return;
-            default:
-                utils::printError("Invalid choice.");
+        switch (choice)
+        {
+        case 1:
+            viewNotifications();
+            break;
+        case 2:
+            markNotificationRead();
+            break;
+        case 3:
+            return;
+        default:
+            utils::printError("Invalid choice.");
         }
-        if (choice != 3) {
+        if (choice != 3)
+        {
             utils::pauseScreen();
         }
     }
 }
 
-void RentalSystem::showAdminDashboard() {
-    while (true) {
+void RentalSystem::showAdminDashboard()
+{
+    while (true)
+    {
         utils::clearScreen();
         utils::printHeader("ADMIN DASHBOARD");
         utils::printInfo("Welcome Administrator.");
         std::cout << "[1] Add Vehicle\n";
         std::cout << "[2] View Vehicles\n";
-        std::cout << "[3] View Bookings\n";
-        std::cout << "[4] Add Maintenance\n";
-        std::cout << "[5] Show Reports\n";
-        std::cout << "[6] Coupon Management\n";
-        std::cout << "[7] Notifications\n";
-        std::cout << "[8] Logout\n";
+        std::cout << "[3] Remove Vehicle\n";
+        std::cout << "[4] View Bookings\n";
+        std::cout << "[5] Add Maintenance\n";
+        std::cout << "[6] Show Reports\n";
+        std::cout << "[7] Coupon Management\n";
+        std::cout << "[8] Notifications\n";
+        std::cout << "[9] Logout\n";
         int choice = utils::getInt("Enter choice: ");
-        switch (choice) {
-            case 1:
-                addVehicle();
-                break;
-            case 2:
-                viewVehicles();
-                break;
-            case 3:
-                viewBookings();
-                break;
-            case 4:
-                addMaintenance();
-                break;
-            case 5:
-                showReports();
-                break;
-            case 6:
-                manageCoupons();
-                break;
-            case 7:
-                manageNotifications();
-                break;
-            case 8:
-                utils::printSuccess("Logged out.");
-                return;
-            default:
-                utils::printError("Invalid choice.");
+        switch (choice)
+        {
+        case 1:
+            addVehicle();
+            break;
+        case 2:
+            viewVehicles();
+            break;
+        case 3:
+            removeVehicle();
+            break;
+        case 4:
+            viewBookings();
+            break;
+        case 5:
+            addMaintenance();
+            break;
+        case 6:
+            showReports();
+            break;
+        case 7:
+            manageCoupons();
+            break;
+        case 8:
+            manageNotifications();
+            break;
+        case 9:
+            utils::printSuccess("Logged out.");
+            return;
+        default:
+            utils::printError("Invalid choice.");
         }
-        if (choice != 8) {
+        if (choice != 9)
+        {
             utils::pauseScreen();
         }
     }
 }
 
-void RentalSystem::showCustomerDashboard() {
-    while (true) {
+void RentalSystem::showCustomerDashboard()
+{
+    while (true)
+    {
         utils::clearScreen();
 
         utils::printHeader("CUSTOMER DASHBOARD");
 
         utils::printInfo(
-            "Welcome " + currentUser->getName() + "."
-        );
+            "Welcome " + currentUser->getName() + ".");
 
         std::cout << "\n";
 
@@ -1774,98 +2120,105 @@ void RentalSystem::showCustomerDashboard() {
         int choice =
             utils::getInt("Enter choice: ");
 
-        switch (choice) {
+        switch (choice)
+        {
 
-            case 1:
-                browseVehicles();
-                break;
+        case 1:
+            browseVehicles();
+            break;
 
-            case 2:
-                createBooking();
-                break;
+        case 2:
+            createBooking();
+            break;
 
-            case 3:
+        case 3:
             smartVehicleAvailability();
-                 break;
+            break;
 
-            case 4:
-                viewBookings();
-                break;
+        case 4:
+            viewBookings();
+            break;
 
-            case 5:
-                cancelBooking();
-                break;
+        case 5:
+            cancelBooking();
+            break;
 
-            case 6:
-                processPickup();
-                break;
+        case 6:
+            processPickup();
+            break;
 
-            case 7:
-                processReturn();
-                break;
+        case 7:
+            processReturn();
+            break;
 
-            case 8:
-                makePayment();
-                break;
+        case 8:
+            makePayment();
+            break;
 
-            case 9:
-                viewInvoice();
-                break;
+        case 9:
+            viewInvoice();
+            break;
 
-            case 10:
-                addFavorite();
-                break;
+        case 10:
+            addFavorite();
+            break;
 
-            case 11:
-                viewFavorites();
-                break;
+        case 11:
+            viewFavorites();
+            break;
 
-            case 12:
-                showCouponMenu();
-                break;
+        case 12:
+            showCouponMenu();
+            break;
 
-            case 13:
-                viewNotifications();
-                break;
+        case 13:
+            viewNotifications();
+            break;
 
-            case 14:
-                addReview();
-                break;  
-            
-            case 15:
-                utils::printSuccess(
-                    "Logged out."
-                );
-                return;
+        case 14:
+            addReview();
+            break;
 
-            default:
-                utils::printError(
-                    "Invalid choice."
-                );
+        case 15:
+            utils::printSuccess(
+                "Logged out.");
+            return;
+
+        default:
+            utils::printError(
+                "Invalid choice.");
         }
 
-        if (choice != 15) {
+        if (choice != 15)
+        {
             utils::pauseScreen();
         }
     }
 }
 
-bool RentalSystem::isUsernameTaken(const std::string& username) const {
-    for (const auto& user : users) {
-        if (user.getUsername() == username) {
+bool RentalSystem::isUsernameTaken(const std::string &username) const
+{
+    for (const auto &user : users)
+    {
+        if (user.getUsername() == username)
+        {
             return true;
         }
     }
     return false;
 }
 
-bool RentalSystem::authenticate(const std::string& username, const std::string& password, std::string& role) const {
-    if (username == "admin" && password == "admin123") {
+bool RentalSystem::authenticate(const std::string &username, const std::string &password, std::string &role) const
+{
+    if (username == "admin" && password == "admin123")
+    {
         role = "admin";
         return true;
     }
-    for (const auto& user : users) {
-        if (user.getUsername() == username && user.getPassword() == password) {
+    for (const auto &user : users)
+    {
+        if (user.getUsername() == username && user.getPassword() == password)
+        {
             role = user.getRole();
             return true;
         }
@@ -1873,54 +2226,51 @@ bool RentalSystem::authenticate(const std::string& username, const std::string& 
     return false;
 }
 
-void RentalSystem::smartVehicleAvailability() {
+void RentalSystem::smartVehicleAvailability()
+{
 
     utils::printHeader(
-        "SMART VEHICLE AVAILABILITY"
-    );
+        "SMART VEHICLE AVAILABILITY");
 
     std::string pickupInput =
         utils::getNonEmptyString(
-            "Pickup Date (DD-MM-YYYY): "
-        );
+            "Pickup Date (DD-MM-YYYY): ");
 
     std::string returnInput =
         utils::getNonEmptyString(
-            "Return Date (DD-MM-YYYY): "
-        );
+            "Return Date (DD-MM-YYYY): ");
 
     Date pickupDate;
     Date returnDate;
 
-    try {
+    try
+    {
 
         pickupDate = Date::parse(pickupInput);
         returnDate = Date::parse(returnInput);
-
     }
-    catch (const std::exception& e) {
+    catch (const std::exception &e)
+    {
 
         utils::printError(
-            "Invalid date. Please use DD-MM-YYYY."
-        );
+            "Invalid date. Please use DD-MM-YYYY.");
 
         return;
     }
 
     // Return date must be after pickup date
-    if (!(pickupDate < returnDate)) {
+    if (!(pickupDate < returnDate))
+    {
 
         utils::printError(
-            "Return date must be after pickup date."
-        );
+            "Return date must be after pickup date.");
 
         return;
     }
 
     std::string vehicleType =
         utils::getNonEmptyString(
-            "Vehicle Type (or ALL): "
-        );
+            "Vehicle Type (or ALL): ");
 
     bool found = false;
 
@@ -1934,16 +2284,19 @@ void RentalSystem::smartVehicleAvailability() {
     std::cout
         << "============================================================\n";
 
-    for (const auto& vehicle : vehicles) {
+    for (const auto &vehicle : vehicles)
+    {
 
         // Vehicle must be available
-        if (vehicle.getStatus() != "AVAILABLE") {
+        if (vehicle.getStatus() != "AVAILABLE")
+        {
             continue;
         }
 
         // Vehicle type filter
         if (vehicleType != "ALL" &&
-            vehicle.getType() != vehicleType) {
+            vehicle.getType() != vehicleType)
+        {
 
             continue;
         }
@@ -1952,7 +2305,8 @@ void RentalSystem::smartVehicleAvailability() {
         if (!isVehicleAvailable(
                 vehicle.getId(),
                 pickupDate,
-                returnDate)) {
+                returnDate))
+        {
 
             continue;
         }
@@ -1976,8 +2330,7 @@ void RentalSystem::smartVehicleAvailability() {
         std::cout
             << "\nPrice/Day   : Rs. "
             << utils::formatMoney(
-                   vehicle.getPricePerDay()
-               );
+                   vehicle.getPricePerDay());
 
         std::cout
             << "\nStatus      : AVAILABLE";
@@ -1986,61 +2339,62 @@ void RentalSystem::smartVehicleAvailability() {
             << "\n----------------------------------------\n";
     }
 
-    if (found) {
+    if (found)
+    {
 
         utils::printSuccess(
-            "Vehicles are available for your selected dates."
-        );
-
+            "Vehicles are available for your selected dates.");
     }
-    else {
+    else
+    {
 
         utils::printWarning(
-            "No vehicles are available for these dates."
-        );
+            "No vehicles are available for these dates.");
 
         showAlternativeVehicles(
             pickupInput,
             returnInput,
-            vehicleType
-        );
+            vehicleType);
     }
 }
 
 void RentalSystem::showAlternativeVehicles(
-    const std::string& pickupDate,
-    const std::string& returnDate,
-    const std::string& vehicleType
-) {
+    const std::string &pickupDate,
+    const std::string &returnDate,
+    const std::string &vehicleType)
+{
 
     Date pickup;
     Date returnDateObj;
 
-    try {
+    try
+    {
 
         pickup = Date::parse(pickupDate);
         returnDateObj = Date::parse(returnDate);
-
     }
-    catch (...) {
+    catch (...)
+    {
 
         return;
     }
 
     utils::printHeader(
-        "ALTERNATIVE VEHICLES"
-    );
+        "ALTERNATIVE VEHICLES");
 
     bool found = false;
 
-    for (const auto& vehicle : vehicles) {
+    for (const auto &vehicle : vehicles)
+    {
 
-        if (vehicle.getStatus() != "AVAILABLE") {
+        if (vehicle.getStatus() != "AVAILABLE")
+        {
             continue;
         }
 
         if (vehicleType != "ALL" &&
-            vehicle.getType() != vehicleType) {
+            vehicle.getType() != vehicleType)
+        {
 
             continue;
         }
@@ -2048,7 +2402,8 @@ void RentalSystem::showAlternativeVehicles(
         if (!isVehicleAvailable(
                 vehicle.getId(),
                 pickup,
-                returnDateObj)) {
+                returnDateObj))
+        {
 
             continue;
         }
@@ -2072,8 +2427,7 @@ void RentalSystem::showAlternativeVehicles(
         std::cout
             << "\nPrice/Day   : Rs. "
             << utils::formatMoney(
-                   vehicle.getPricePerDay()
-               );
+                   vehicle.getPricePerDay());
 
         std::cout
             << "\nStatus      : AVAILABLE";
@@ -2082,17 +2436,16 @@ void RentalSystem::showAlternativeVehicles(
             << "\n----------------------------------------\n";
     }
 
-    if (!found) {
+    if (!found)
+    {
 
         utils::printInfo(
-            "No alternative vehicles are available."
-        );
-
+            "No alternative vehicles are available.");
     }
-    else {
+    else
+    {
 
         utils::printSuccess(
-            "Alternative vehicles are available."
-        );
+            "Alternative vehicles are available.");
     }
 }
