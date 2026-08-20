@@ -1,5 +1,0 @@
-1|Booking #2 was cancelled.|BOOKING|1
-2|Booking #1 was cancelled.|BOOKING|1
-3|Vehicle returned for booking #3.|BOOKING|0
-4|Booking #3 was cancelled.|BOOKING|0
-5|Booking #3 was cancelled.|BOOKING|0

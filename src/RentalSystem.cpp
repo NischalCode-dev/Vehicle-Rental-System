@@ -327,96 +327,7 @@ void RentalSystem::viewVehicles()
          "Type", "Price/Day", "Status"},
         rows);
 }
-// void RentalSystem::viewVehicles() {
 
-//     if (vehicles.empty()) {
-//         utils::printWarning("No vehicles found.");
-//         return;
-//     }
-
-//     utils::printHeader("VEHICLE AVAILABILITY");
-
-//     std::string pickupInput =
-//         utils::getNonEmptyString(
-//             "Enter pickup date (DD-MM-YYYY): "
-//         );
-
-//     std::string returnInput =
-//         utils::getNonEmptyString(
-//             "Enter return date (DD-MM-YYYY): "
-//         );
-
-//     try {
-
-//         Date pickup =
-//             Date::parse(pickupInput);
-
-//         Date returnDate =
-//             Date::parse(returnInput);
-
-//         if (!pickup.isValid() ||
-//             !returnDate.isValid() ||
-//             !(pickup < returnDate)) {
-
-//             utils::printError(
-//                 "Invalid rental date range."
-//             );
-
-//             return;
-//         }
-
-//         std::vector<std::vector<std::string>> rows;
-
-//         for (const auto& vehicle : vehicles) {
-
-//             bool available =
-//                 isVehicleAvailable(
-//                     vehicle.getId(),
-//                     pickup,
-//                     returnDate
-//                 );
-
-//             std::string status;
-
-//             if (available) {
-//                 status = "AVAILABLE";
-//             } else {
-//                 status = "BOOKED";
-//             }
-
-//             rows.push_back({
-//                 std::to_string(vehicle.getId()),
-//                 vehicle.getVehicleNumber(),
-//                 vehicle.getBrand(),
-//                 vehicle.getModel(),
-//                 vehicle.getType(),
-//                 utils::formatMoney(
-//                     vehicle.getPricePerDay()
-//                 ),
-//                 status
-//             });
-//         }
-
-//         utils::printTable(
-//             {
-//                 "ID",
-//                 "Vehicle Number",
-//                 "Brand",
-//                 "Model",
-//                 "Type",
-//                 "Price/Day",
-//                 "Status"
-//             },
-//             rows
-//         );
-
-//     } catch (const std::exception& e) {
-
-//         utils::printError(
-//             std::string("Invalid date: ") + e.what()
-//         );
-//     }
-// }
 void RentalSystem::browseVehicles()
 {
     viewVehicles();
@@ -844,27 +755,7 @@ void RentalSystem::createBooking()
         std::string returnLocation = utils::getNonEmptyString("Return location: ");
         int rentalDays = Date::daysBetween(pickup, returnDate);
 
-        // double rentalPrice = rentalDays * vehicleIt->getPricePerDay();
-        // double totalAmount = rentalPrice;
-
-        // std::string couponCode;
-        // if (!coupons.empty()) {
-        //     couponCode = utils::getNonEmptyString("Coupon code (leave blank to skip): ");
-        // }
-        // double discount = 0.0;
-        // if (!couponCode.empty()) {
-        //     for (const auto& coupon : coupons) {
-        //         if (coupon.getCode() == couponCode) {
-        //             if (coupon.isValidFor(totalAmount, Date::parse(currentDateString()))) {
-        //                 discount = coupon.calculateDiscount(totalAmount);
-        //                 totalAmount -= discount;
-        //             } else {
-        //                 utils::printWarning("Coupon is not valid for this booking.");
-        //             }
-        //             break;
-        //         }
-        //     }
-        // }
+       
         double baseRentalPrice =
             rentalDays * vehicleIt->getPricePerDay();
 
@@ -1242,41 +1133,7 @@ void RentalSystem::processReturn()
     }
 }
 
-// void RentalSystem::makePayment() {
-//     int bookingId = utils::getInt("Booking ID: ");
-//     auto bookingIt = std::find_if(bookings.begin(), bookings.end(), [&](const Booking& booking) {
-//         return booking.getId() == bookingId;
-//     });
-//     if (bookingIt == bookings.end()) {
-//         std::cout << "[ERROR] Booking not found.\n";
-//         return;
-//     }
 
-//     std::string method = utils::getNonEmptyString("Payment method: ");
-//     double amount = utils::getDouble("Amount: ");
-//     payments.emplace_back(nextPaymentId++, bookingIt->getId(), bookingIt->getCustomerId(), amount, method, currentDateString(), "TXN" + std::to_string(nextPaymentId), "PAID");
-//     bookingIt->setStatus("PAID");
-//     savePayments();
-//     saveBookings();
-
-//     auto vehicleIt = std::find_if(vehicles.begin(), vehicles.end(), [&](const Vehicle& vehicle) {
-//         return vehicle.getId() == bookingIt->getVehicleId();
-//     });
-//     auto customerIt = std::find_if(users.begin(), users.end(), [&](const User& user) {
-//         return user.getId() == bookingIt->getCustomerId();
-//     });
-//     if (vehicleIt != vehicles.end() && customerIt != users.end()) {
-//         const Payment& paymentRecord = payments.back();
-//         Invoice invoice(*bookingIt, *vehicleIt, *customerIt, paymentRecord);
-//         std::cout << "[SUCCESS] Payment recorded.\n";
-//         std::cout << "\n";
-//         invoice.display();
-//         addNotification("Payment received for booking #" + std::to_string(bookingId) + ".", "PAYMENT");
-//     } else {
-//         std::cout << "[SUCCESS] Payment recorded.\n";
-//         addNotification("Payment received for booking #" + std::to_string(bookingId) + ".", "PAYMENT");
-//     }
-// }
 void RentalSystem::makePayment()
 {
     if (currentUser == nullptr)
@@ -2036,17 +1893,24 @@ void RentalSystem::showAdminDashboard()
     {
         utils::clearScreen();
         utils::printHeader("ADMIN DASHBOARD");
-        utils::printInfo("Welcome Administrator.");
-        std::cout << "[1] Add Vehicle\n";
-        std::cout << "[2] View Vehicles\n";
-        std::cout << "[3] Remove Vehicle\n";
-        std::cout << "[4] View Bookings\n";
-        std::cout << "[5] Add Maintenance\n";
-        std::cout << "[6] Show Reports\n";
-        std::cout << "[7] Coupon Management\n";
-        std::cout << "[8] Notifications\n";
-        std::cout << "[9] Logout\n";
+       
+        std::cout << "\n";
+        std::cout << "============================================================\n";
+        std::cout << "                    WELCOME ADMINISTRATOR\n";
+        std::cout << "============================================================\n";
+        std::cout << "\n";
+
+        std::cout << "   [1] Add Vehicle                 [6] Show Reports\n";
+        std::cout << "   [2] View Vehicles               [7] Coupon Management\n";
+        std::cout << "   [3] Remove Vehicle              [8] Notifications\n";
+        std::cout << "   [4] View Bookings               [9] Logout\n";
+        std::cout << "   [5] Add Maintenance\n";
+
+        std::cout << "\n";
+        std::cout << "============================================================\n";
+
         int choice = utils::getInt("Enter choice: ");
+
         switch (choice)
         {
         case 1:
@@ -2092,33 +1956,22 @@ void RentalSystem::showCustomerDashboard()
     {
         utils::clearScreen();
 
-        utils::printHeader("CUSTOMER DASHBOARD");
-
-        utils::printInfo(
-            "Welcome " + currentUser->getName() + ".");
+               utils::printHeader("CUSTOMER DASHBOARD");
 
         std::cout << "\n";
 
-        std::cout << "[1]  Browse Vehicles\n";
-        std::cout << "[2]  Create Booking\n";
-        std::cout << "[3]  Smart Vehicle Availability\n";
-        std::cout << "[4]  My Bookings\n";
-        std::cout << "[5]  Cancel Booking\n";
-        std::cout << "[6]  Process Pickup\n";
-        std::cout << "[7]  Return Vehicle\n";
-        std::cout << "[8]  Make Payment\n";
-        std::cout << "[9]  View Invoice\n";
-        std::cout << "[10] Add Favorite Vehicles\n";
-        std::cout << "[11] View Favorite Vehicles\n";
-        std::cout << "[12] Coupons\n";
-        std::cout << "[13] Notifications\n";
-        std::cout << "[14] Review Vehicle\n";
-        std::cout << "[15] Logout\n";
+        std::cout << "   [1]  Browse Vehicles              [9]  View Invoice\n";
+        std::cout << "   [2]  Create Booking               [10] Add Favorite Vehicles\n";
+        std::cout << "   [3]  Smart Vehicle Availability   [11] View Favorite Vehicles\n";
+        std::cout << "   [4]  My Bookings                  [12] Coupons\n";
+        std::cout << "   [5]  Cancel Booking               [13] Notifications\n";
+        std::cout << "   [6]  Process Pickup               [14] Review Vehicle\n";
+        std::cout << "   [7]  Return Vehicle               [15] Logout\n";
+        std::cout << "   [8]  Make Payment\n";
 
         std::cout << "\n";
 
-        int choice =
-            utils::getInt("Enter choice: ");
+        int choice = utils::getInt("Enter choice: ");
 
         switch (choice)
         {

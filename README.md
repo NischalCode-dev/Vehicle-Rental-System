@@ -28,4 +28,4 @@ g++ -std=c++17 -Iinclude main.cpp src/*.cpp -o VehicleRentalSystem.exe
 - Username: admin
 - Password: admin123
 
-> This is a demo credential only. Change it in a production-style version.
+> 

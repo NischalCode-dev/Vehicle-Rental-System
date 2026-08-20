@@ -229,22 +229,22 @@ namespace utils {
 
     void printSuccess(const std::string& message) {
         ensureConsoleEncoding();
-        std::cout << "[SUCCESS] " << message << "\n";
+        std::cout<< message << "\n";
     }
 
     void printError(const std::string& message) {
         ensureConsoleEncoding();
-        std::cout << "[ERROR] " << message << "\n";
+        std::cout<< message << "\n";
     }
 
     void printWarning(const std::string& message) {
         ensureConsoleEncoding();
-        std::cout << "[WARNING] " << message << "\n";
+        std::cout<< message << "\n";
     }
 
     void printInfo(const std::string& message) {
         ensureConsoleEncoding();
-        std::cout << "[INFO] " << message << "\n";
+        std::cout<< message << "\n";
     }
 
     void clearScreen() {
