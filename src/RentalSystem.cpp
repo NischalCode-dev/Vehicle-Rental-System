@@ -398,15 +398,7 @@ void RentalSystem::removeVehicle()
         return;
     }
 
-    // Don't allow removal of currently booked vehicle
-    if (it->getStatus() == "BOOKED")
-    {
-
-        utils::printError(
-            "This vehicle is currently booked and cannot be removed.");
-
-        return;
-    }
+    
 
     // Confirmation
     std::cout << "\n";
