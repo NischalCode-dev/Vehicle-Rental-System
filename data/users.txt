@@ -1,1 +1,3 @@
 1|Manish Ghimere|manish@gmail.com|9825346712|Manish1|Ghimere2|customer
+2|Dipen Karki|dipen@gmail.com|9824352621|Dipen|Karki|customer
+3|Jiten Rai|jiten1@gmail.com|9834526787|Jiten1|Rai1|customer

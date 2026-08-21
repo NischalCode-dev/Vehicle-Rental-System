@@ -2055,7 +2055,7 @@ bool RentalSystem::isUsernameTaken(const std::string &username) const
 
 bool RentalSystem::authenticate(const std::string &username, const std::string &password, std::string &role) const
 {
-    if (username == "admin" && password == "admin123")
+    if (username == "admin" && password == "vehicle")
     {
         role = "admin";
         return true;
