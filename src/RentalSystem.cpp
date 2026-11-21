@@ -140,7 +140,7 @@ void RentalSystem::seedSampleData()
 
     vehicles.emplace_back(nextVehicleId++, "BA 12 PA 1234", "Toyota", "Corolla", "Car", 2022, "White", "Petrol", "Automatic", 5, 3000.0, 18000.0, "AVAILABLE");
     vehicles.emplace_back(nextVehicleId++, "BA 14 HA 5678", "Hyundai", "Creta", "SUV", 2021, "Black", "Diesel", "Manual", 5, 4000.0, 22000.0, "AVAILABLE");
-    vehicles.emplace_back(nextVehicleId++, "BA 16 CA 9012", "Honda", "Civic", "Car", 2020, "Silver", "Petrol", "Automatic", 5, 3500.0, 15000.0, "BOOKED");
+    vehicles.emplace_back(nextVehicleId++, "BA 16 CA 9012", "Honda", "Civic", "Car", 2020, "Silver", "Petrol", "Automatic", 5, 3500.0, 15000.0, "AVAILABLE");
     vehicles.emplace_back(nextVehicleId++, "BA 18 RA 3456", "Yamaha", "R15", "Bike", 2023, "Blue", "Petrol", "Manual", 2, 1200.0, 9000.0, "AVAILABLE");
     saveVehicles();
 }
