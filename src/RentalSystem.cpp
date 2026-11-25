@@ -1956,9 +1956,9 @@ void RentalSystem::showCustomerDashboard()
         std::cout << "   [2]  Create Booking               [10] Add Favorite Vehicles\n";
         std::cout << "   [3]  Smart Vehicle Availability   [11] View Favorite Vehicles\n";
         std::cout << "   [4]  My Bookings                  [12] Coupons\n";
-        std::cout << "   [5]  Cancel Booking               [13] Notifications\n";
-        std::cout << "   [6]  Process Pickup               [14] Review Vehicle\n";
-        std::cout << "   [7]  Return Vehicle               [15] Logout\n";
+        std::cout << "   [5]  Cancel Booking               [13] Review Vehicle\n";
+        std::cout << "   [6]  Process Pickup               [14] Logout\n";
+        std::cout << "   [7]  Return Vehicle\n";
         std::cout << "   [8]  Make Payment\n";
 
         std::cout << "\n";
@@ -2017,14 +2017,10 @@ void RentalSystem::showCustomerDashboard()
             break;
 
         case 13:
-            viewNotifications();
-            break;
-
-        case 14:
             addReview();
             break;
 
-        case 15:
+        case 14:
             utils::printSuccess(
                 "Logged out.");
             return;
@@ -2034,7 +2030,7 @@ void RentalSystem::showCustomerDashboard()
                 "Invalid choice.");
         }
 
-        if (choice != 15)
+        if (choice != 14)
         {
             utils::pauseScreen();
         }

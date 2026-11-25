@@ -2,3 +2,4 @@
 2|Dipen Karki|dipen@gmail.com|9824352621|Dipen|Karki|customer
 3|Jiten Rai|jiten1@gmail.com|9834526787|Jiten1|Rai1|customer
 4|Karan Sardar|karan34@gmail.com|9826372625|Karn|karn|customer
+5|Bibek Tamang|tamang@gmail.com|9836272812|Bibek1|Tamang1|customer
